@@ -61,7 +61,7 @@ Stats.runPython = (paramOne, paramTwo, res) => {
   });
   
   cmd.on('close', (code) => {
-    console.log(`child process exited with code ${code}`);
+    // console.log(`child process exited with code ${code}`);
     let dataBuffer =  Buffer.concat(bufferArray);
     // console.log(dataBuffer.toString());
     res(null, dataBuffer);
