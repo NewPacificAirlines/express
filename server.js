@@ -12,7 +12,7 @@ const fs = require("fs");
 
 var corsOptions = {
   // origin: "http://localhost:8080",
-  origin: "http://localhost:4200"
+  origin: "http://localhost:8091"
 };
 
 app.use(cors(corsOptions));
@@ -34,7 +34,7 @@ app.get("/", (req, res) => {
 require("./app/routes/stats.routes.js")(app);
 
 // set port, listen for requests
-const PORT = process.env.PORT || 8088;
+const PORT = process.env.PORT || 8090;
 app.listen(PORT, () => {
   console.log(`Server is running on port ${PORT}.`);
 });
