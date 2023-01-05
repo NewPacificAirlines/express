@@ -1,6 +1,7 @@
-// const Tutorial = require("../models/stats.model.js");
 
 const Stats = require("../models/stats.model.js");
+
+const Formpost = require("../models/stats.model.js");
 
 const date = new Date();
 
@@ -42,6 +43,51 @@ exports.runPython = (req, res) => {
   });
 };
 
+
+
+// Create and Save a Form Post
+exports.formPost = (req, res) => {
+  // Validate request
+  if (!req.body) {
+    res.status(400).send({
+      message: "Content can not be empty!"
+    });
+  }
+  console.log('request: ',req.body);
+
+  // Create a Save Post Object
+
+ 
+  const formPost = new Formpost({
+    name: req.body.name,
+    emailOffers: req.body.emailOffers || false,
+    interfaceStyle: req.body.interfaceStyle,
+    subscriptionType: req.body.subscriptionType,
+    notes: req.body.notes,
+    toggle: req.body.toggle,
+    startDate: req.body.startDate,
+    endDate: req.body.endDate
+
+  });
+ 
+
+  console.log('formPost:', formPost)
+  
+  // Save Form Post in the database
+  Stats.create(formPost, (err, data) => {
+    if (err)
+      res.status(500).send({
+        message:
+          err.message || "Some error occurred while creating the Form Post."
+      });
+    else res.send(data);
+    // else res.status(400).send({
+    //   message: "Some bad data from client!"
+    // });
+
+
+  });
+};
 
 
 // // Create and Save a new Tutorial

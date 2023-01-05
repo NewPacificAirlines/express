@@ -13,8 +13,8 @@ module.exports = app => {
   // Get post to run python script
   router.get("/python", stats.runPython);
 
-  // // Create a new Tutorial
-  // router.post("/", tutorials.create);
+  // Create and save form post 
+  router.post("/", stats.formPost);
 
   // // Retrieve all Tutorials
   // router.get("/", tutorials.findCondition);

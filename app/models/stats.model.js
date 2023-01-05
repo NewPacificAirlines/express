@@ -70,19 +70,34 @@ Stats.runPython = (paramOne, paramTwo, res) => {
 
 };
 
-// Tutorial.create = (newTutorial, result) => {
-//   sql.query("INSERT INTO tutorials SET ?", newTutorial, (err, res) => {
-//     console.log(newTutorial);
-//     if (err) {
-//       console.log("error: ", err);
-//       result(err, null);
-//       return;
-//     }
 
-//     console.log("created tutorial: ", { id: res.insertId, ...newTutorial });
-//     result(null, { id: res.insertId, ...newTutorial });
-//   });
-// };
+const Formpost = function(formPost){
+  this.name = formPost.name;
+  this.emailOffers = formPost.emailOffers;
+  this.interfaceStyle = formPost.interfaceStyle;
+  this.subscriptionType = formPost.subscriptionType;
+  this.notes = formPost.notes,
+  this.toggle = formPost.toggle,
+  this.startDate = formPost.startDate,
+  this.endDate = formPost.endDate
+}
+
+
+
+
+Formpost.create = (formPost, result) => {
+  sql.query("INSERT INTO tutorials SET ?", formPost, (err, res) => {
+    if (err) {
+      console.log("error: ", err);
+      result(err, null);
+      return;
+    }
+
+    console.log("created form post: ", { id: res.insertId, ...formPost });
+    result(null, { id: res.insertId, ...formPost });
+
+  });
+};
 
 // Tutorial.findById = (id, result) => {
 //   sql.query(`SELECT * FROM tutorials WHERE id = ${id}`, (err, res) => {
@@ -220,3 +235,4 @@ Stats.runPython = (paramOne, paramTwo, res) => {
 
 
 module.exports = Stats;
+module.exports = Formpost;
