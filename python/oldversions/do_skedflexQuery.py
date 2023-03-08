@@ -61,15 +61,11 @@ def run_query(start_date, end_date, flight_num,tails):
     PaxNon = []
     Rush = []
     Comat = []
-    # BagCount = []
-    CargoBagCount = []
+    BagCount = []
     Copilot = []
     FlightAttendant = []
     fob = []
     burn =[]
-    month = []
-    day = []
-    year = []
     
     connection = 0
 
@@ -85,7 +81,7 @@ def run_query(start_date, end_date, flight_num,tails):
         cursor = connection.cursor(dictionary=True)
         
        
-        sql = """SELECT id, flightNum, status, date, tail, eqp, schedDepTime, schedArvTime, outTime, offTime, onTime, inTime, departLoc, arriveLoc, departDelays, crew, type, opsTypes, irregularCode, seats, pax, paxnon, cargo, rush, comat, mail, mailnon, bags, bagcount, cargobagcount, rpm, asm, fob, burn FROM SkedFlexData
+        sql = """SELECT id, flightNum, status, date, tail, eqp, schedDepTime, schedArvTime, outTime, offTime, onTime, inTime, departLoc, arriveLoc, departDelays, crew, type, opsTypes, irregularCode, seats, pax, paxnon, cargo, rush, comat, mail, mailnon, bags, bagcount, rpm, asm, fob, burn FROM SkedFlexData
                 WHERE (date BETWEEN %s AND %s) AND type <> 'offline-dh' AND status <> 'deleted'"""
         
         params = (start_date, end_date)
@@ -116,7 +112,7 @@ def run_query(start_date, end_date, flight_num,tails):
         
         # print(sql)
         # print(params)
-        # # print(type(params))
+        # print(type(params))
         
         cursor.execute(sql, params)
         records = cursor.fetchall()
@@ -136,13 +132,7 @@ def run_query(start_date, end_date, flight_num,tails):
                 Canceleds.append('FALSE')
                         
             # Dates.append(row['date'].strftime('%x'))
-            rowDate = row['date']
             Dates.append(row['date'].strftime('%-m/%-d/%y'))
-            
-            month.append(rowDate.month)
-            day.append(rowDate.day)
-            year.append(rowDate.year)
-            
 
             try:
                 tailDict = ast.literal_eval(row['tail'])
@@ -220,74 +210,39 @@ def run_query(start_date, end_date, flight_num,tails):
                 
             try:   
 
-                crewUser = ''
-               
-                sortOrder = ''
+                crewMembers =''
+                crewCopilot =''
+                crewFlightAttendant =''
                 crewObjStr=(row['crew'])
                 crewVar = crewObjStr.replace('} {','} , {')
                 crewVar = "["+crewVar+"]"
                 crewList = ast.literal_eval(crewVar)
-                
-                crewSortOrder =[]
-                crewSortName = []
-                crewSortPos = []
-                
                 index = 0
                 # print(len(crewList))
                 while index < len(crewList):
                     crewDict=crewList[index]
-                    crewUser=crewDict.get('user')
-                    # crewName=crewUser.get('lastName')
+                    crewMember=crewDict.get('user')
+                    # crewName=crewMember.get('lastName')
                     crewPosition=crewDict.get('position')
                     crewPosName=crewPosition.get('name')
-                    sortOrder=str(crewPosition.get('sortOrder'))
-                    crewFull=crewUser.get('nameLastFirst')
-                    
-                    # print(type(sortOrder))
-
-                    # print(sortOrder)
+                    crewFull=crewMember.get('nameLastFirst')
                     # print(crewPosName)
                     # print(crewFull)
+                    # crewMembers=crewMembers+crewPosName+'-'+crewName+' | '
                     
-                    crewSortOrder.append(sortOrder)
-                    crewSortName.append(crewFull)
-                    crewSortPos.append(crewPosName)
-             
+                    if(crewPosName == "Captain" ) or (crewPosName == "Check Airman"):
+                        crewMembers=crewFull
+                    if(crewPosName == "First Officer") or (crewPosName == "FO Trainee"):
+                        crewCopilot=crewFull
+                    if(crewPosName == "Flight Attendant"):
+                        crewFlightAttendant=crewFull
+                    
                         
                     index += 1
-                    
-                # print('crewSortList ',len(sortOrderList))  
-
-                # index = 0
-               
-                # print('crewSortOrder ',crewSortOrder)
-                # print('crewSortName ',crewSortName)
-                # print('crewSortPos ',crewSortPos)
+                Captain.append(crewMembers)
+                Copilot.append(crewCopilot)
+                FlightAttendant.append(crewFlightAttendant)
                 
-                try:
-                    if(crewSortName[0] != ''):
-                        Captain.append(crewSortName[0])
-                    else:
-                        Captain.append('')
-                except:
-                     Captain.append('')
-                     
-                try:    
-                    if(crewSortName[1] != ''):    
-                        Copilot.append(crewSortName[1])
-                    else:
-                        Copilot.append('')
-                except:
-                     Copilot.append('')
-                     
-                try:          
-                    if(crewSortName[2] !=''):
-                        FlightAttendant.append(crewSortName[2])
-                    else:
-                        FlightAttendant.append('')
-                except:
-                    FlightAttendant.append('')
-                        
             except:
                 Captain.append('')
                 Copilot.append('')
@@ -420,21 +375,13 @@ def run_query(start_date, end_date, flight_num,tails):
             except:
                 Bags.append('0')
                 
-            # try:
-            #     if str(row['bagcount']) =='None':
-            #         BagCount.append('0')
-            #     else:
-            #         BagCount.append(str(row['bagcount']))
-            # except:
-            #     BagCount.append('0')
-                
             try:
-                if str(row['cargobagcount']) =='None':
-                    CargoBagCount.append('0')
+                if str(row['bagcount']) =='None':
+                    BagCount.append('0')
                 else:
-                    CargoBagCount.append(str(row['cargobagcount']))
+                    BagCount.append(str(row['bagcount']))
             except:
-                CargoBagCount.append('0')
+                BagCount.append('0')
             
             try:
                 rpms.append(str(row['rpm']))
@@ -482,10 +429,6 @@ def run_query(start_date, end_date, flight_num,tails):
     # print(Copilot)
     # print(FlightAttendant)
     
-    # print(len(Captain))
-    # print(len(Copilot))
-    # print(len(FlightAttendant))
-    
     # print(len(Types))
     # print(len(OpsTypes))
     # print(len(Canceleds))
@@ -496,22 +439,15 @@ def run_query(start_date, end_date, flight_num,tails):
     # print('NonPri totals')
     # print(MailNon)
     # print(Bags)
-    
-    # print('BagCount',BagCount)
-    # print('CargoBagCount',CargoBagCount)
-
     # print(rpms)
     # print(asms)
-    
-    
-    strMonth = [str(x) for x in month]
-    strDay = [str(x) for x in day]
-    strYear = [str(x) for x in year]
-    
-    # print(type(strMonth[0]))
-    # print(strMonth)
-    # print(strDay)
-    # print(strYear)
+    # print(len(Pax))
+    # print(len(Cargo))
+    # print(len(Mail))
+    # print(len(Bags))
+    # print(len(rpms))
+    # print(len(asms))
+
     
     jsonList=[]   
     index = 0
@@ -523,14 +459,12 @@ def run_query(start_date, end_date, flight_num,tails):
             '","Captain":"'+Captain[index]+'","Copilot":"'+Copilot[index]+'","Flight Attendant":"'+FlightAttendant[index]+\
             '","SkedFlexType":"'+Types[index]+'","SkedFlexOpsType":"'+OpsTypes[index]+'","Canceled":"'+Canceleds[index]+\
             '","CanceledReason":"'+IrregularCodes[index]+'","DateTimeStamp":"'+DateTimeStamp[index]+'","Pax":"'+Pax[index]+'","PaxNon":"'+PaxNon[index]+\
-            '","Rush":"'+Rush[index]+'","Comat":"'+Comat[index]+'","CargoBagCount":"'+CargoBagCount[index]+'","FOB":"'+fob[index]+'","Burn":"'+burn[index]+\
-            '","Cargo":"'+Cargo[index]+'","Mail":"'+Mail[index]+'","MailNon":"'+MailNon[index]+'","Bags":"'+Bags[index]+'","RPM":"'+rpms[index]+'","ASM":"'+asms[index]+\
-            '","Month":"'+strMonth[index]+'","Day":"'+strDay[index]+'","Year":"'+strYear[index]+'"}'
+            '","Rush":"'+Rush[index]+'","Comat":"'+Comat[index]+'","BagCount":"'+BagCount[index]+'","FOB":"'+fob[index]+'","Burn":"'+burn[index]+\
+            '","Cargo":"'+Cargo[index]+'","Mail":"'+Mail[index]+'","MailNon":"'+MailNon[index]+'","Bags":"'+Bags[index]+'","RPM":"'+rpms[index]+'","ASM":"'+asms[index]+'"}'
         
         jsonList.append(jsonLine)
         
         index += 1
-        
     jsonOutput=str(jsonList)
     # print(jsonOutput)
 
@@ -538,10 +472,9 @@ def run_query(start_date, end_date, flight_num,tails):
     jsonOutput=jsonOutput.replace("}, {","},{")    
     jsonOutput=jsonOutput.replace("|"," ")
     
-    # print(len(FlightNums))
     print(jsonOutput)
-    
-    
+    # return(jsonOutput)
+
     # print(start_date)
     # print(end_date)    
     # print(flight_num)
@@ -562,7 +495,7 @@ if __name__ == '__main__':
     try:   
         start_date = datetime.strptime(sys.argv[1], '%Y-%m-%d')    #The 0th arg is the module filename.
     except:
-        start_date = end_date-timedelta(days=1)
+        start_date = end_date-timedelta(days=7)
     
     try:    
         flight_num = sys.argv[3]

@@ -1,39 +1,51 @@
 module.exports = app => {
-  // const tutorials = require("../controllers/stats.controller.js");
 
+  
   const stats = require("../controllers/stats.controller.js");
 
 
   var router = require("express").Router();
 
   // Retrieve all Stats with condition
-  router.get("/stats", stats.getAll);
+  router.get("/aircraft", stats.getAircraft);
 
 
   // Get post to run python script
-  router.get("/python", stats.runPython);
-
-  // Create and save form post 
-  router.post("/", stats.formPost);
-
-  // // Retrieve all Tutorials
-  // router.get("/", tutorials.findCondition);
-
-  // // Retrieve all published Tutorials
-  // router.get("/published", tutorials.findAllPublished);
-
-  // // Retrieve a single Tutorial with id
-  // router.get("/:id", tutorials.findOne);
+  router.get("/python", stats.getFlights);
 
 
-  // // Update a Tutorial with id
-  // router.put("/:id", tutorials.update);
+  // Get post to get manifest detail
+  router.get("/manifest", stats.getManifests);
 
-  // // Delete a Tutorial with id
-  // router.delete("/:id", tutorials.delete);
+  //Post post to create new user preference
 
-  // // Delete all Tutorials
-  // router.delete("/", tutorials.deleteAll);
+  router.post("/userpreference", stats.CreateUserPreference);
+
+  //Get post to get user preferences by user and type
+
+  router.get("/alluserpreference", stats.FindAllUserPreference);
+
+  //Get post to get user preferences by user type and preferencename
+
+  router.get("/userpreference", stats.FindUserPreference);
+
+  //Post post to update user preference or create new one is none exists.
+
+  router.post("/updateuserpreference", stats.UpdateUserPreference);
+
+ //Post post to create user preference or create new one is none exists.
+
+  router.post("/createuserpreference", stats.CreateUserPreference);
+
+//Post post to delete user preference or create new one is none exists.
+
+  router.post("/deleteuserpreference", stats.DeleteUserPreference);
+
+//Get to retrieve skedflex data for Dashboard
+
+ // Get post to run python script
+ router.get("/dashboard_getFlightDataNew", stats.getFlightsDashboard);
+
 
   app.use('/api/', router);
 };

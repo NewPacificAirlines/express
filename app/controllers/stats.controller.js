@@ -1,7 +1,7 @@
 
 const Stats = require("../models/stats.model.js");
 
-const Formpost = require("../models/stats.model.js");
+// const Formpost = require("../models/stats.model.js");
 
 const date = new Date();
 
@@ -10,219 +10,343 @@ let month = date.getMonth() + 1;
 let year = date.getFullYear();
 let currentDate = `${year}-${month}-${day}`;
 
-// Retrieve all Stats records from the database (with condition).
-exports.getAll = (req, res) => {
-  const startDate = req.query.startdate;
-  const endDate = req.query.enddate;
-  const flightNum = req.query.flightnum;
 
- 
-  Stats.getAll(startDate, endDate, flightNum, (err, data) => {
-    if (err)
-      res.status(500).send({
-        message:
-          err.message || "Some error occurred while retrieving stats."
-      });
-    else res.send(data);
-  });
-};
 
 // Handle calls to python script
 
-exports.runPython = (req, res) => {
+exports.getFlights = (req, res) => {
+
+  console.log('getStats.req.query',req.query)
+
   const startDate = req.query.startdate;
   const endDate = req.query.enddate;
+  const flightNum = req.query.flightnum;
+  const tails = req.query.tails;
+  const key = req.query.key;
+  const ravnKey = '08a853e59b398fc84577489bcd03fb53e5db892c';
+  const message = 'Error';
+  
 
-  Stats.runPython(startDate, endDate, (err, data) => {
-    if (err)
-      res.status(500).send({
-        message:
-          err.message || "Some error occurred while retrieving stats."
-      });
-    else res.send(data);
-  });
+  // console.log('flightNum',flightNum);
+  // console.log('tails',tails)  
+
+  // const tailNum = '';
+  
+  if (key == ravnKey)
+  
+
+    Stats.getFlights(startDate, endDate, flightNum, tails, (err, data) => {
+      if (err)
+        res.status(500).send({
+          message:
+            err.message || "Some error occurred while retrieving stats."
+        });
+      else res.send(data)
+      
+    });
+  else
+    res.status(500).send('Error Missing Security Key!')
+
+};
+
+//Retrieve Manifests
+
+exports.getManifests = (req, res) => {
+
+  console.log('getManifests.req.query',req.query)
+
+  const id = req.query.id;
+  const key = req.query.key;
+
+  const startDate = req.query.startDate;
+  const endDate = req.query.endDate;
+
+  const ravnKey = '08a853e59b398fc84577489bcd03fb53e5db892c';
+  const message = 'Error';
+  
+
+  console.log('startDate ',startDate)
+  console.log('endDate ',endDate)
+  console.log('id ',id)
+
+  if (key == ravnKey)
+  
+    Stats.getManifests(id, startDate, endDate, (err, data) => {
+      if (err)
+        res.status(500).send({
+          message:
+            err.message || "Some error occurred while retrieving manifest."
+        });
+      else {res.send(data)
+      // console.log('Returned Data ',JSON.stringify(data))
+      };
+    });
+  else
+    res.status(500).send('Error Missing Security Key!')
+
 };
 
 
+// Retrieve all active Aircraft records from the database 
+exports.getAircraft = (req, res) => {
+  const active = req.query.active;
+  const ravnKey = '08a853e59b398fc84577489bcd03fb53e5db892c'
 
-// Create and Save a Form Post
-exports.formPost = (req, res) => {
-  // Validate request
+  const key = req.query.key;
+
+  // console.log('getAircraft.req.query',req.query)
+
+  if (key == ravnKey)
+
+  Stats.getAircraft(active, (err, data) => {
+    if (err)
+      res.status(500).send({
+        message:
+          err.message || "Some error occurred while retrieving aircraft."
+      });
+    else res.send(data);
+  });
+
+  else
+    res.status(500).send({
+      message:
+        err.message || "No security key!"
+    }); 
+};
+
+
+// Create and Save a new User Preference
+exports.CreateUserPreference = (req, res) => {
+  const ravnKey = '08a853e59b398fc84577489bcd03fb53e5db892c'
+
+  const key = req.query.key;
+  const UserEmail = req.query.UserEmail;
+  const PreferenceType = req.query.PreferenceType;
+  const PreferenceName = req.query.PreferenceName;
+  const Data = req.query.Data;
+
+
+  // console.log('CreateUserPreference req.query',req.query)
+
+
+  if (key == ravnKey)
+
+  Stats.createUserPreference(UserEmail,PreferenceType,PreferenceName,Data, (err, data) => {
+    if (err)
+      res.status(500).send({
+        message:
+          err.message || "Some error occurred while retrieving preference."
+      });
+    else res.send(data);
+  });
+
+  else
+    res.status(500).send({
+      message:
+        err.message || "No security key!"
+    }); 
+};
+
+// Find a single User Preference by ID
+exports.FindUserPreference = (req, res) => {
+  
+};
+
+
+// Update a User Preference by the id in the request
+exports.UpdateUserPreference = (req, res) => {
+  const ravnKey = '08a853e59b398fc84577489bcd03fb53e5db892c'
+
+  const key = req.query.key;
+  const ID = req.query.ID;
+  const UserEmail = req.query.UserEmail;
+  const PreferenceType = req.query.PreferenceType;
+  const PreferenceName = req.query.PreferenceName;
+  const Data = req.query.Data;
+
+
+  // console.log('CreateUserPreference req.query',req.query)
+
+
+  if (key == ravnKey)
+
+  Stats.updateUserPreference(UserEmail,PreferenceType,PreferenceName,ID,Data, (err, data) => {
+    if (err)
+      res.status(500).send({
+        message:
+          err.message || "Some error occurred while creating preference."
+      });
+    else res.send(data);
+  });
+
+  else
+    res.status(500).send({
+      message:
+        err.message || "No security key!"
+    }); 
+};
+
+
+// Find all User Preferences by type and user
+exports.FindAllUserPreference = (req, res) => {
+  const ravnKey = '08a853e59b398fc84577489bcd03fb53e5db892c'
+  const key = req.query.key;
+  const UserEmail = req.query.UserEmail;
+  const PreferenceType = req.query.PreferenceType
+
+  // console.log('FindAllUserPreference.req.query',req.query)
+
+  if (key == ravnKey)
+
+    Stats.getAllUserPreferences(UserEmail, PreferenceType, (err, data) => {
+      if (err)
+        res.status(500).send({
+          message:
+            err.message || "Some error occurred while retrieving user preferences."
+        });
+      else res.send(data);
+  });
+
+  else
+    res.status(500).send({
+      message:
+        err.message || "No security key!"
+    }); 
+
+};
+
+// Get User Preference by UserEmail PreferenceName and PreferenceType
+exports.FindUserPreference = (req, res) => {
+  const ravnKey = '08a853e59b398fc84577489bcd03fb53e5db892c'
+  const key = req.query.key;
+  const UserEmail = req.query.UserEmail;
+  const PreferenceName = req.query.PreferenceName
+  const PreferenceType = req.query.PreferenceType
+
+  // console.log('FindAllUserPreference.req.query',req.query)
+
+  if (key == ravnKey)
+
+    Stats.getUserPreferenceByName(UserEmail, PreferenceName, PreferenceType, (err, data) => {
+      if (err)
+        res.status(500).send({
+          message:
+            err.message || "Some error occurred while retrieving user preferences."
+        });
+      else res.send(data);
+  });
+
+  else
+    res.status(500).send({
+      message:
+        err.message || "No security key!"
+    }); 
+
+};
+
+// Update or create user preference
+
+exports.UpdateUserPreference = (req, res) => {
+  const ravnKey = '08a853e59b398fc84577489bcd03fb53e5db892c'
+  const key = req.query.key;
+  const UserEmail = req.query.UserEmail;
+  const PreferenceName = req.query.PreferenceName
+  const PreferenceType = req.query.PreferenceType
+  const ID = req.query.ID
+  const Data = req.query.Data
+
   if (!req.body) {
     res.status(400).send({
       message: "Content can not be empty!"
     });
   }
-  console.log('request: ',req.body);
 
-  // Create a Save Post Object
+  // console.log('UpdateUserPreference.req.query',req.query)
+  // console.log('req.query.Body',Body)
 
- 
-  const formPost = new Formpost({
-    name: req.body.name,
-    emailOffers: req.body.emailOffers || false,
-    interfaceStyle: req.body.interfaceStyle,
-    subscriptionType: req.body.subscriptionType,
-    notes: req.body.notes,
-    toggle: req.body.toggle,
-    startDate: req.body.startDate,
-    endDate: req.body.endDate
 
+  if (key == ravnKey)
+
+    Stats.updateUserPreference(UserEmail, PreferenceName, PreferenceType, ID, Data, (err, data) => {
+      if (err)
+        res.status(500).send({
+          message:
+            err.message || "Some error occurred while retrieving user preferences."
+        });
+      else res.send(data);
   });
- 
 
-  console.log('formPost:', formPost)
-  
-  // Save Form Post in the database
-  Stats.create(formPost, (err, data) => {
-    if (err)
-      res.status(500).send({
-        message:
-          err.message || "Some error occurred while creating the Form Post."
-      });
-    else res.send(data);
-    // else res.status(400).send({
-    //   message: "Some bad data from client!"
-    // });
+  else
+    res.status(500).send({
+      message:
+        err.message || "No security key!"
+    }); 
 
+};
+// Get User Preference by UserEmail PreferenceName and PreferenceType
+exports.DeleteUserPreference = (req, res) => {
+  const ravnKey = '08a853e59b398fc84577489bcd03fb53e5db892c'
+  const key = req.query.key;
+  const ID = req.query.ID
 
+  // console.log('FindAllUserPreference.req.query',req.query)
+
+  if (key == ravnKey)
+
+    Stats.deleteUserPreference(ID, (err, data) => {
+      if (err)
+        res.status(500).send({
+          message:
+            err.message || "Some error occurred while deleting user preferences."
+        });
+      else res.send(data);
   });
+
+  else
+    res.status(500).send({
+      message:
+        err.message || "No security key!"
+    }); 
+
 };
 
+// Handle calls to python script for Dashboard calls
 
-// // Create and Save a new Tutorial
-// exports.create = (req, res) => {
-//   // Validate request
-//   if (!req.body) {
-//     res.status(400).send({
-//       message: "Content can not be empty!"
-//     });
-//   }
+exports.getFlightsDashboard = (req, res) => {
 
-//   // Create a Tutorial
-//   const tutorial = new Tutorial({
-//     title: req.body.title,
-//     description: req.body.description,
-//     published: req.body.published || false,
-//     date: req.body.date || currentDate
-//   });
+  console.log('getStats.req.query',req.query)
+
+  const startDate = '2020-11-01';
   
-//   // Save Tutorial in the database
-//   Tutorial.create(tutorial, (err, data) => {
-//     if (err)
-//       res.status(500).send({
-//         message:
-//           err.message || "Some error occurred while creating the Tutorial."
-//       });
-//     else res.send(data);
-//   });
-// };
+  const todayDate = new Date();
+  let day = todayDate.getDate();
+  let month = todayDate.getMonth() + 1;
+  let year = todayDate.getFullYear();
+  let endDate = `${year}-${month}-${day}`;
 
-// // Retrieve all Tutorials from the database (with condition).
-// exports.findCondition = (req, res) => {
-//   const title = req.query.title;
-//   const date = req.query.date;
+  const key = req.query.key;
+  const ravnKey = '08a853e59b398fc84577489bcd03fb53e5db892c';
+  const message = 'Error';
+  
 
-//   Tutorial.getAll(title, date, (err, data) => {
-//     if (err)
-//       res.status(500).send({
-//         message:
-//           err.message || "Some error occurred while retrieving tutorials."
-//       });
-//     else res.send(data);
-//   });
-// };
+  // console.log('flightNum',flightNum);
+  // console.log('tails',tails)  
 
+  // const tailNum = '';
+  
+  if (key == ravnKey)
+  
 
+    Stats.getFlightsDashboard(startDate, endDate, (err, data) => {
+      if (err)
+        res.status(500).send({
+          message:
+            err.message || "Some error occurred while retrieving stats."
+        });
+      else res.send(data)
+      
+    });
+  else
+    res.status(500).send('Error Missing Security Key!')
 
-
-// // Find a single Tutorial by Id
-// exports.findOne = (req, res) => {
-//   Tutorial.findById(req.params.id, (err, data) => {
-//     if (err) {
-//       if (err.kind === "not_found") {
-//         res.status(404).send({
-//           message: `Not found Tutorial with id ${req.params.id}.`
-//         });
-//       } else {
-//         res.status(500).send({
-//           message: "Error retrieving Tutorial with id " + req.params.id
-//         });
-//       }
-//     } else res.send(data);
-//   });
-// };
-
-
-
-
-// // find all published Tutorials
-// exports.findAllPublished = (req, res) => {
-//   Tutorial.getAllPublished((err, data) => {
-//     if (err)
-//       res.status(500).send({
-//         message:
-//           err.message || "Some error occurred while retrieving tutorials."
-//       });
-//     else res.send(data);
-//   });
-// };
-
-// // Update a Tutorial identified by the id in the request
-// exports.update = (req, res) => {
-//   // Validate Request
-//   if (!req.body) {
-//     res.status(400).send({
-//       message: "Content can not be empty!"
-//     });
-//   }
-
-//   console.log(req.body);
-
-//   Tutorial.updateById(
-//     req.params.id,
-//     new Tutorial(req.body),
-//     (err, data) => {
-//       if (err) {
-//         if (err.kind === "not_found") {
-//           res.status(404).send({
-//             message: `Not found Tutorial with id ${req.params.id}.`
-//           });
-//         } else {
-//           res.status(500).send({
-//             message: "Error updating Tutorial with id " + req.params.id
-//           });
-//         }
-//       } else res.send(data);
-//     }
-//   );
-// };
-
-// // Delete a Tutorial with the specified id in the request
-// exports.delete = (req, res) => {
-//   Tutorial.remove(req.params.id, (err, data) => {
-//     if (err) {
-//       if (err.kind === "not_found") {
-//         res.status(404).send({
-//           message: `Not found Tutorial with id ${req.params.id}.`
-//         });
-//       } else {
-//         res.status(500).send({
-//           message: "Could not delete Tutorial with id " + req.params.id
-//         });
-//       }
-//     } else res.send({ message: `Tutorial was deleted successfully!` });
-//   });
-// };
-
-// // Delete all Tutorials from the database.
-// exports.deleteAll = (req, res) => {
-//   Tutorial.removeAll((err, data) => {
-//     if (err)
-//       res.status(500).send({
-//         message:
-//           err.message || "Some error occurred while removing all tutorials."
-//       });
-//     else res.send({ message: `All Tutorials were deleted successfully!` });
-//   });
-// };
+};

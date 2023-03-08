@@ -3,50 +3,41 @@ const sql = require("./db.js");
 // constructor
 
 const { spawn } = require("child_process");
+const { end } = require("./db.js");
 
 
 const Stats = function(stats){
   this.startDate = stats.startDate;
   this.endDate = stats.endDate;
-  this.flightnum = stats.flightnum
-}
+  this.flightnum = stats.flightnum;
+  this.p1 = stats.startDate;
+  this.p2 = stats.endDate;
+  this.p3 = stats.flightnum;
+  this.p4 = stats.tails;
+  this.id = manifest.id;
+  this.UserEmail = stats.UserEmail;
+  this.PreferenceType = stats.PreferenceType;
+  this.PreferenceName = stats.PreferenceName;
+  this.Data = stats.Data;
 
-Stats.getAll = (startDate, endDate, flightNum, result) => {
-  let query = "SELECT * FROM SkedFlexData";
+  this.ID = stats.ID;
 
-  if (flightNum !== undefined ) {
-    query += ` WHERE flightnum LIKE '%${flightNum}%'`;
-  }
-
-  if ((startDate !== undefined) & (endDate !== undefined)) {
-    query += ` WHERE date BETWEEN '${startDate}' AND '${endDate}'`;
-  }
-
-
-
-  sql.query(query, (err, res) => {
-    if (err) {
-      console.log("error: ", err);
-      result(null, err);
-      return;
-    }
-
-    console.log("stats: ", res);
-    result(null, res);
-  });
-};
-
-
-const pythonParams = function(params){
-  this.paramOne = params.startDate;
-  this.paramTwo = params.endDate
+ 
 }
 
 
-Stats.runPython = (paramOne, paramTwo, res) => {
+
+// const pythonParams = function(params){
+//   this.paramOne = params.startDate;
+//   this.paramTwo = params.endDate
+// }
+
+
+Stats.getFlights = (p1, p2, p3, p4, res) => {
 
   const { spawn } = require('child_process');
-  const cmd = spawn("python3", ["python/do_skedflexQuery.py", paramOne, paramTwo]);
+  const cmd = spawn('python3', ['python/do_skedflexQuery.py', p1, p2, p3, p4]);
+
   let bufferArray= []
 
   // cmd.stdout.setEncoding('utf8'); sets encdoing defualt encoding is buffer
@@ -61,7 +52,38 @@ Stats.runPython = (paramOne, paramTwo, res) => {
   });
   
   cmd.on('close', (code) => {
-    // console.log(`child process exited with code ${code}`);
+    console.log(`child process exited with code ${code}`);
+    let dataBuffer =  Buffer.concat(bufferArray);
+    // console.log(dataBuffer.toString());
+    res(null, dataBuffer);
+  });
+};
+
+
+Stats.getManifests = (id, startDate, endDate, res) => {
+
+  console.log('startDate',startDate)
+  console.log('endDate',endDate)
+  console.log('id',id)
+
+  const { spawn } = require('child_process');
+  const cmd = spawn('python3', ['python/do_manifestQuery.py', startDate, endDate, id]);
+
+  let bufferArray= []
+
+  // cmd.stdout.setEncoding('utf8'); sets encdoing defualt encoding is buffer
+  
+  cmd.stdout.on('data', (data) => {
+    // console.log(`stdout: ${data}`);
+    bufferArray.push(data)
+  });
+  
+  cmd.stderr.on('data', (data) => {
+    console.error(`stderr: ${data}`);
+  });
+  
+  cmd.on('close', (code) => {
+    console.log(`child process exited with code ${code}`);
     let dataBuffer =  Buffer.concat(bufferArray);
     // console.log(dataBuffer.toString());
     res(null, dataBuffer);
@@ -71,168 +93,160 @@ Stats.runPython = (paramOne, paramTwo, res) => {
 };
 
 
-const Formpost = function(formPost){
-  this.name = formPost.name;
-  this.emailOffers = formPost.emailOffers;
-  this.interfaceStyle = formPost.interfaceStyle;
-  this.subscriptionType = formPost.subscriptionType;
-  this.notes = formPost.notes,
-  this.toggle = formPost.toggle,
-  this.startDate = formPost.startDate,
-  this.endDate = formPost.endDate
-}
 
+Stats.getAircraft = (active, result) => {
+  let query = "SELECT aircraft, short, type FROM Aircraft"
+  // console.log('sql',query);
+  
+  if (active !== undefined ) {
+    query += ` WHERE active = '${active}'`;
+  }
 
-
-
-Formpost.create = (formPost, result) => {
-  sql.query("INSERT INTO tutorials SET ?", formPost, (err, res) => {
+  sql.query(query, (err, res) => {
     if (err) {
       console.log("error: ", err);
-      result(err, null);
+      result(null, err);
       return;
     }
 
-    console.log("created form post: ", { id: res.insertId, ...formPost });
-    result(null, { id: res.insertId, ...formPost });
-
+    // console.log("aircraft: ", res);
+    result(null, res);
   });
 };
 
-// Tutorial.findById = (id, result) => {
-//   sql.query(`SELECT * FROM tutorials WHERE id = ${id}`, (err, res) => {
-//     if (err) {
-//       console.log("error: ", err);
-//       result(err, null);
-//       return;
-//     }
 
-//     if (res.length) {
-//       console.log("found tutorial: ", res[0]);
-//       result(null, res[0]);
-//       return;
-//     }
-
-//     // not found Tutorial with the id
-//     result({ kind: "not_found" }, null);
-//   });
-// };
+Stats.getAllUserPreferences = (UserEmail, PreferenceType, result) => {
+  let query = "SELECT PreferenceName FROM UserPreferences "
+  
+  query += ` WHERE UserEmail = '${UserEmail}' AND PreferenceType = '${PreferenceType}'`;
+  // console.log('sql',query);
 
 
+  sql.query(query, (err, res) => {
+    if (err) {
+      console.log("error: ", err);
+      result(null, err);
+      return;
+    }
 
-// Tutorial.getAll = (title, date, result) => {
-//   let query = "SELECT * FROM tutorials";
+    result(null, res);
+  });
+};
 
-//   if (title !== undefined ) {
-//     query += ` WHERE title LIKE '%${title}%'`;
-//   }
-
-//   if (date !== undefined) {
-//     query += ` WHERE date LIKE '%${date}%'`;
-//   }
-
-//   sql.query(query, (err, res) => {
-//     if (err) {
-//       console.log("error: ", err);
-//       result(null, err);
-//       return;
-//     }
-
-//     console.log("tutorials: ", res);
-//     result(null, res);
-//   });
-// };
+Stats.getUserPreferenceByName = (UserEmail, PreferenceName, PreferenceType, result) => {
+  let query = "SELECT ID, PreferenceData FROM UserPreferences "
+  
+  query += ` WHERE UserEmail = '${UserEmail}' AND PreferenceName = '${PreferenceName}' AND PreferenceType = '${PreferenceType}'`;
+  // console.log('sql',query);
 
 
-// Tutorial.getDate = (date, result) => {
-//   let query = "SELECT * FROM tutorials";
+  sql.query(query, (err, res) => {
+    if (err) {
+      console.log("error: ", err);
+      result(null, err);
+      return;
+    }
 
-//   if (title) {
-//     query += ` WHERE date LIKE '%${date}%'`;
-//   }
+    result(null, res);
+  });
+};
 
-//   sql.query(query, (err, res) => {
-//     if (err) {
-//       console.log("error: ", err);
-//       result(null, err);
-//       return;
-//     }
 
-//     console.log("tutorials: ", res);
-//     result(null, res);
-//   });
-// };
+Stats.updateUserPreference = (UserEmail, PreferenceName, PreferenceType, ID, Data, result) => {
+  
+  let query = "UPDATE  UserPreferences Set UserEmail='${UserEmail}', PreferenceType='${PreferenceType}', PreferenceName='${PreferenceName}', PreferenceData='${Data}' "
+      query+= "WHERE ID = '${ID}'"
 
-// Tutorial.getAllPublished = result => {
-//   sql.query("SELECT * FROM tutorials WHERE published=true", (err, res) => {
-//     if (err) {
-//       console.log("error: ", err);
-//       result(null, err);
-//       return;
-//     }
+  // console.log('sql',query);
+  // console.log('UserEmail ',UserEmail)
+  // console.log('PreferenceName ',PreferenceName)
+  // console.log('PreferenceType ',PreferenceType)
+  // console.log('Data ',Data)
 
-//     console.log("tutorials: ", res);
-//     result(null, res);
-//   });
-// };
 
-// Tutorial.updateById = (id, tutorial, result) => {
-//   sql.query(
-//     "UPDATE tutorials SET title = ?, description = ?, published = ? WHERE id = ?",
-//     [tutorial.title, tutorial.description, tutorial.published, id],
-//     (err, res) => {
-//       if (err) {
-//         console.log("error: ", err);
-//         result(null, err);
-//         return;
-//       }
+  sql.query(query, (err, res) => {
+    if (err) {
+      console.log("error: ", err);
+      result(null, err);
+      return;
+    }
 
-//       if (res.affectedRows == 0) {
-//         // not found Tutorial with the id
-//         result({ kind: "not_found" }, null);
-//         return;
-//       }
+    if (res.affectedRows == 0) {
+      // not found Tutorial with the id
+      result({ kind: "not_found" }, null);
+      return;
+    }
 
-//       console.log("updated tutorial: ", { id: id, ...tutorial });
-//       result(null, { id: id, ...tutorial });
-//     }
-//   );
-// };
+    console.log("updated user preference : ", { ID: ID, PreferenceName: PreferenceName });
+    result(null, { ID: ID, PreferenceName: PreferenceName });
+  });
+};
 
-// Tutorial.remove = (id, result) => {
-//   sql.query("DELETE FROM tutorials WHERE id = ?", id, (err, res) => {
-//     if (err) {
-//       console.log("error: ", err);
-//       result(null, err);
-//       return;
-//     }
 
-//     if (res.affectedRows == 0) {
-//       // not found Tutorial with the id
-//       result({ kind: "not_found" }, null);
-//       return;
-//     }
+Stats.createUserPreference = (UserEmail, PreferenceType, PreferenceName, Data, result) => {
+  let query = `INSERT INTO UserPreferences (UserEmail, PreferenceType, PreferenceName, PreferenceData) VALUES ('${UserEmail}', '${PreferenceType}','${PreferenceName}','${Data}') `
+  
+  // console.log('sql',query);
+  
 
-//     console.log("deleted tutorial with id: ", id);
-//     result(null, res);
-//   });
-// };
+  sql.query(query, (err, res) => {
+    if (err) {
+      console.log("error: ", err);
+      result(null, err);
+      return;
+    }
 
-// Tutorial.removeAll = result => {
-//   sql.query("DELETE FROM tutorials", (err, res) => {
-//     if (err) {
-//       console.log("error: ", err);
-//       result(null, err);
-//       return;
-//     }
+    result(null, res);
+  });
+};
 
-//     console.log(`deleted ${res.affectedRows} tutorials`);
-//     result(null, res);
-//   });
-// };
 
-// module.exports = Tutorial;
+Stats.deleteUserPreference = (ID, result) => {
+  sql.query("DELETE FROM UserPreferences WHERE id = ?", ID, (err, res) => {
+    if (err) {
+      console.log("error: ", err);
+      result(null, err);
+      return;
+    }
+
+    if (res.affectedRows == 0) {
+      // not found UserPreference with the id
+      result({ kind: "not_found" }, null);
+      return;
+    }
+
+    console.log("deleted user preference with id: ", ID);
+    result(null, res);
+  });
+};
+
+
+
+Stats.getFlightsDashboard = (p1, p2, res) => {
+
+  const { spawn } = require('child_process');
+  const cmd = spawn('python3', ['python/do_skedflexDashboard.py', p1, p2]);
+
+  let bufferArray= []
+
+  // cmd.stdout.setEncoding('utf8'); sets encdoing defualt encoding is buffer
+  
+  cmd.stdout.on('data', (data) => {
+    // console.log(`stdout: ${data}`);
+    bufferArray.push(data)
+  });
+  
+  cmd.stderr.on('data', (data) => {
+    console.error(`stderr: ${data}`);
+  });
+  
+  cmd.on('close', (code) => {
+    console.log(`child process exited with code ${code}`);
+    let dataBuffer =  Buffer.concat(bufferArray);
+    // console.log(dataBuffer.toString());
+    res(null, dataBuffer);
+  });
+};
 
 
 module.exports = Stats;
-module.exports = Formpost;

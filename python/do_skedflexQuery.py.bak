@@ -19,15 +19,9 @@ import re
 
 
 
-def run_query(start_date, end_date, flight_num,tails):
+def run_query(start_date, end_date):
     
-
-    # print(start_date)
-    # print(end_date)
-    # print(flight_num)
-    # print(tail_num)
     
-    IDs = []
     Dates = []
     SchedDeps = []
     SchedArvs = []
@@ -44,7 +38,7 @@ def run_query(start_date, end_date, flight_num,tails):
     ArriveLocs = []
     DepartDelayCodes = []
     DepartDelayTimes =[]
-    Captain = []
+    Crews = []
     
     Types = []
     OpsTypes = []
@@ -54,27 +48,19 @@ def run_query(start_date, end_date, flight_num,tails):
     Pax = []
     Cargo = []
     Mail = []
-    MailNon = []
     Bags = []
     rpms = []
     asms = []
-    PaxNon = []
-    Rush = []
-    Comat = []
-    # BagCount = []
-    CargoBagCount = []
-    Copilot = []
-    FlightAttendant = []
-    fob = []
-    burn =[]
-    month = []
-    day = []
-    year = []
     
+    
+    
+
     connection = 0
+   
 
 
     try:
+        # connection = mysql.connector.connect(host='10.9.24.65',
         connection = mysql.connector.connect(host='127.0.0.1',
                                             port=3306,
                                             database='skedflex',
@@ -84,48 +70,17 @@ def run_query(start_date, end_date, flight_num,tails):
                                             use_pure=True)
         cursor = connection.cursor(dictionary=True)
         
-       
-        sql = """SELECT id, flightNum, status, date, tail, eqp, schedDepTime, schedArvTime, outTime, offTime, onTime, inTime, departLoc, arriveLoc, departDelays, crew, type, opsTypes, irregularCode, seats, pax, paxnon, cargo, rush, comat, mail, mailnon, bags, bagcount, cargobagcount, rpm, asm, fob, burn FROM SkedFlexData
-                WHERE (date BETWEEN %s AND %s) AND type <> 'offline-dh' AND status <> 'deleted'"""
-        
-        params = (start_date, end_date)
-        
-        # print(type(params))
-        
-        if(flight_num != ''):
-                            
-            sql += """ AND flightNum = %s"""
-            params = params + (flight_num,)
-            
-        if(tails != ''):
-            tails_sql = ''
-            
-            tails_list = tails.split(",")    
-            tails_sql += " AND ("
-            # print(tails_list)
-            
-            for i in tails_list:
-                tails_sql += " tail LIKE '%"+i+"%' OR "
-                
-            tails_sql = tails_sql[:-4]
-            tails_sql += ") " 
-            sql += tails_sql
-            
-        # sql += " ORDER BY date, flightNum"
-        
-        
-        # print(sql)
-        # print(params)
-        # # print(type(params))
-        
-        cursor.execute(sql, params)
+        # sql = """SELECT flightNum, status, date, tail, eqp, schedDepTime, schedArvTime, outTime, offTime, onTime, inTime, departLoc, arriveLoc, departDelays, crew, type, opsTypes, irregularCode, seats, pax, cargo, mail, bags, rpm, asm FROM SkedFlexData
+        #         WHERE (date BETWEEN %s AND %s) AND type <> 'offline-dh' AND status <> 'deleted' AND status <> 'canceled' AND (opsTypes LIKE '%SCHED%' OR opsTypes LIKE '%CHARTER%') ORDER BY flightNum """
+                        
+        sql = """SELECT flightNum, status, date, tail, eqp, schedDepTime, schedArvTime, outTime, offTime, onTime, inTime, departLoc, arriveLoc, departDelays, crew, type, opsTypes, irregularCode, seats, pax, cargo, mail, bags, rpm, asm FROM SkedFlexData
+                WHERE (date BETWEEN %s AND %s) AND type <> 'offline-dh' AND status <> 'deleted' AND (opsTypes LIKE '%SCHED%' OR opsTypes LIKE '%XTRASECT%' ) ORDER BY date, flightNum """
+
+
+        cursor.execute(sql, (start_date, end_date))
         records = cursor.fetchall()
         
         for row in records:
-            
-            skedID =str((row['id']))
-            IDs.append(skedID)
-            
             FlightNums.append(row['flightNum'])
             
             status = row['status']
@@ -136,13 +91,7 @@ def run_query(start_date, end_date, flight_num,tails):
                 Canceleds.append('FALSE')
                         
             # Dates.append(row['date'].strftime('%x'))
-            rowDate = row['date']
             Dates.append(row['date'].strftime('%-m/%-d/%y'))
-            
-            month.append(rowDate.month)
-            day.append(rowDate.day)
-            year.append(rowDate.year)
-            
 
             try:
                 tailDict = ast.literal_eval(row['tail'])
@@ -220,78 +169,34 @@ def run_query(start_date, end_date, flight_num,tails):
                 
             try:   
 
-                crewUser = ''
-               
-                sortOrder = ''
+                crewMembers=''
                 crewObjStr=(row['crew'])
                 crewVar = crewObjStr.replace('} {','} , {')
                 crewVar = "["+crewVar+"]"
                 crewList = ast.literal_eval(crewVar)
-                
-                crewSortOrder =[]
-                crewSortName = []
-                crewSortPos = []
-                
                 index = 0
                 # print(len(crewList))
                 while index < len(crewList):
                     crewDict=crewList[index]
-                    crewUser=crewDict.get('user')
-                    # crewName=crewUser.get('lastName')
+                    crewMember=crewDict.get('user')
+                    # crewName=crewMember.get('lastName')
                     crewPosition=crewDict.get('position')
                     crewPosName=crewPosition.get('name')
-                    sortOrder=str(crewPosition.get('sortOrder'))
-                    crewFull=crewUser.get('nameLastFirst')
-                    
-                    # print(type(sortOrder))
-
-                    # print(sortOrder)
+                    crewFull=crewMember.get('nameLastFirst')
                     # print(crewPosName)
                     # print(crewFull)
+                    # crewMembers=crewMembers+crewPosName+'-'+crewName+' | '
                     
-                    crewSortOrder.append(sortOrder)
-                    crewSortName.append(crewFull)
-                    crewSortPos.append(crewPosName)
-             
+                    if(crewPosName == "Captain"):
+                        crewMembers=crewFull
+                    
                         
                     index += 1
-                    
-                # print('crewSortList ',len(sortOrderList))  
-
-                # index = 0
-               
-                # print('crewSortOrder ',crewSortOrder)
-                # print('crewSortName ',crewSortName)
-                # print('crewSortPos ',crewSortPos)
+                Crews.append(crewMembers)
                 
-                try:
-                    if(crewSortName[0] != ''):
-                        Captain.append(crewSortName[0])
-                    else:
-                        Captain.append('')
-                except:
-                     Captain.append('')
-                     
-                try:    
-                    if(crewSortName[1] != ''):    
-                        Copilot.append(crewSortName[1])
-                    else:
-                        Copilot.append('')
-                except:
-                     Copilot.append('')
-                     
-                try:          
-                    if(crewSortName[2] !=''):
-                        FlightAttendant.append(crewSortName[2])
-                    else:
-                        FlightAttendant.append('')
-                except:
-                    FlightAttendant.append('')
-                        
             except:
-                Captain.append('')
-                Copilot.append('')
-                FlightAttendant.append('')
+                Crews.append('')
+
             try:
                 opsTypeDict = ast.literal_eval(row['opsTypes'])
                 OpsTypes.append(opsTypeDict.get('code'))
@@ -371,97 +276,32 @@ def run_query(start_date, end_date, flight_num,tails):
             try:
                 Pax.append(str(row['pax']))
             except:
-                Pax.append('0')
-                
-            try:
-                if str(row['paxnon']) =='None':
-                    PaxNon.append('0')
-                else:
-                    PaxNon.append(str(row['paxnon']))  
-            except:
-                PaxNon.append('0')
+                Pax.append('')
                 
             try:
                 Cargo.append(str(row['cargo']))
             except:
-                Cargo.append('0')
-                
-            try:
-                if str(row['rush']) =='None':
-                    Rush.append('0')
-                else:
-                    Rush.append(str(row['rush']))
-            except:
-                Rush.append('0')
+                Cargo.append('')
             
-            try:
-                if str(row['comat']) =='None':
-                    Comat.append('0')
-                else:
-                    Comat.append(str(row['comat']))
-            except:
-                Comat.append('0')
-                
             try:
                 Mail.append(str(row['mail']))
             except:
-                Mail.append('0')
+                Mail.append('')
 
-            try:
-                if str(row['mailnon']) =='None':
-                    MailNon.append('0')
-                else:
-                    MailNon.append(str(row['mailnon']))
-            except:
-                MailNon.append('0')
-                
             try:
                 Bags.append(str(row['bags']))
             except:
-                Bags.append('0')
-                
-            # try:
-            #     if str(row['bagcount']) =='None':
-            #         BagCount.append('0')
-            #     else:
-            #         BagCount.append(str(row['bagcount']))
-            # except:
-            #     BagCount.append('0')
-                
-            try:
-                if str(row['cargobagcount']) =='None':
-                    CargoBagCount.append('0')
-                else:
-                    CargoBagCount.append(str(row['cargobagcount']))
-            except:
-                CargoBagCount.append('0')
-            
+                Bags.append('')
+
             try:
                 rpms.append(str(row['rpm']))
             except:
-                rpms.append('0')
+                rpms.append('')
                 
             try:
                 asms.append(str(row['asm']))
             except:
-                asms.append('0')
-                
-            try:
-                if str(row['fob']) =='None':
-                    fob.append('0')
-                else:
-                    fob.append(str(row['fob']))
-            except:
-                fob.append('0')
-         
-            try:
-                if str(row['burn']) =='None':
-                    burn.append('0')
-                else:
-                    burn.append(str(row['burn']))
-            except:
-                burn.append('0')
-                
+                asms.append('')
                 
         
     except mysql.connector.Error as error:
@@ -469,116 +309,66 @@ def run_query(start_date, end_date, flight_num,tails):
 
 
     finally:
+        # print(connection)
         if connection.is_connected():
             cursor.close()
             connection.close()
+        # print(Canceleds)
+        # print(Statuses)
     
-    
-    # print(Canceleds)
-    # print(Statuses)
     # print(Dates)
-    
-    # print(Captain)
-    # print(Copilot)
-    # print(FlightAttendant)
-    
-    # print(len(Captain))
-    # print(len(Copilot))
-    # print(len(FlightAttendant))
-    
     # print(len(Types))
     # print(len(OpsTypes))
     # print(len(Canceleds))
     # print(Pax)
     # print(Cargo)
-    # print('Mail Totals')
     # print(Mail)
-    # print('NonPri totals')
-    # print(MailNon)
     # print(Bags)
-    
-    # print('BagCount',BagCount)
-    # print('CargoBagCount',CargoBagCount)
-
     # print(rpms)
     # print(asms)
-    
-    
-    strMonth = [str(x) for x in month]
-    strDay = [str(x) for x in day]
-    strYear = [str(x) for x in year]
-    
-    # print(type(strMonth[0]))
-    # print(strMonth)
-    # print(strDay)
-    # print(strYear)
+    # print(len(Pax))
+    # print(len(Cargo))
+    # print(len(Mail))
+    # print(len(Bags))
+    # print(len(rpms))
+    # print(len(asms))
+
     
     jsonList=[]   
     index = 0
     while index < len(FlightNums):
-        jsonLine='{"ID":"'+IDs[index]+'","FltDate":"'+Dates[index]+'","SkedDep":"'+SchedDeps[index]+'","FltNumber":"'+ FlightNums[index]+'","Status":"'+ Statuses[index]+\
+        jsonLine='{"FltDate":"'+Dates[index]+'","SkedDep":"'+SchedDeps[index]+'","FltNumber":"'+ FlightNums[index]+\
             '","Acft":"'+Tails[index]+'","Seats":"'+str(Seats[index])+'","Out":"'+OutTimes[index]+'","Off":"'+OffTimes[index]+\
             '","On":"'+OnTimes[index]+'","In":"'+InTimes[index]+'","SkedArr":"'+SchedArvs[index]+'","Origin":"'+DepartLocs[index]+\
             '","Dest":"'+ArriveLocs[index]+'","DelayTime":"'+DepartDelayTimes[index]+'","DelayData":"'+DepartDelayCodes[index]+\
-            '","Captain":"'+Captain[index]+'","Copilot":"'+Copilot[index]+'","Flight Attendant":"'+FlightAttendant[index]+\
-            '","SkedFlexType":"'+Types[index]+'","SkedFlexOpsType":"'+OpsTypes[index]+'","Canceled":"'+Canceleds[index]+\
-            '","CanceledReason":"'+IrregularCodes[index]+'","DateTimeStamp":"'+DateTimeStamp[index]+'","Pax":"'+Pax[index]+'","PaxNon":"'+PaxNon[index]+\
-            '","Rush":"'+Rush[index]+'","Comat":"'+Comat[index]+'","CargoBagCount":"'+CargoBagCount[index]+'","FOB":"'+fob[index]+'","Burn":"'+burn[index]+\
-            '","Cargo":"'+Cargo[index]+'","Mail":"'+Mail[index]+'","MailNon":"'+MailNon[index]+'","Bags":"'+Bags[index]+'","RPM":"'+rpms[index]+'","ASM":"'+asms[index]+\
-            '","Month":"'+strMonth[index]+'","Day":"'+strDay[index]+'","Year":"'+strYear[index]+'"}'
+            '","Captain":"'+Crews[index]+'","SkedFlexType":"'+Types[index]+'","SkedFlexOpsType":"'+OpsTypes[index]+'","Canceled":"'+Canceleds[index]+\
+            '","CanceledReason":"'+IrregularCodes[index]+'","DateTimeStamp":"'+DateTimeStamp[index]+'","Pax":"'+Pax[index]+\
+            '","Cargo":"'+Cargo[index]+'","Mail":"'+Mail[index]+'","Bags":"'+Bags[index]+'","RPM":"'+rpms[index]+'","ASM":"'+asms[index]+'"}'
         
         jsonList.append(jsonLine)
         
         index += 1
-        
     jsonOutput=str(jsonList)
     # print(jsonOutput)
 
     jsonOutput=jsonOutput.translate({ord("'"):None})
     jsonOutput=jsonOutput.replace("}, {","},{")    
-    jsonOutput=jsonOutput.replace("|"," ")
-    
-    # print(len(FlightNums))
-    print(jsonOutput)
-    
-    
-    # print(start_date)
-    # print(end_date)    
-    # print(flight_num)
-    # print(tail_num)    
-    # # print(type(flight_num))
-    # print(type(tail_num))    
 
+    print(jsonOutput)
+    sys.stdout.flush()
 
 if __name__ == '__main__':
-    
-    
-
-    try:    
-        end_date = datetime.strptime(sys.argv[2], '%Y-%m-%d')
-    except:
-        end_date = date.today()
-        
+   
     try:   
         start_date = datetime.strptime(sys.argv[1], '%Y-%m-%d')    #The 0th arg is the module filename.
+        end_date = datetime.strptime(sys.argv[2], '%Y-%m-%d')
+        # print(type(sys.argv[1]))
+        # print(type(sys.argv[2]))
+
     except:
-        start_date = end_date-timedelta(days=1)
-    
-    try:    
-        flight_num = sys.argv[3]
-    except:
-        flight_num = ''
-    
-    try:        
-        tails = sys.argv[4]
-    except:
-        tails = ''
-        
-        
-    # print(start_date)
-    # print(end_date)    
-    # print(flight_num)
-    # print(tail_num)    
-    # print(tails)
-       
-    run_query(start_date,end_date,flight_num,tails) 
+        end_date = date.today()
+        start_date = end_date-timedelta(days=7)
+         
+    # print(str(start_date)+" - "+str(end_date))
+    # sys.stdout.flush()
+    run_query(start_date,end_date) 
