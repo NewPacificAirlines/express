@@ -249,4 +249,58 @@ Stats.getFlightsDashboard = (p1, p2, res) => {
 };
 
 
+
+Stats.getCargoDashboard = (p1, p2, res) => {
+
+  const { spawn } = require('child_process');
+  const cmd = spawn('python3', ['python/do_cargoQuery.py', p1, p2]);
+
+  let bufferArray= []
+
+  // cmd.stdout.setEncoding('utf8'); sets encdoing defualt encoding is buffer
+  
+  cmd.stdout.on('data', (data) => {
+    // console.log(`stdout: ${data}`);
+    bufferArray.push(data)
+  });
+  
+  cmd.stderr.on('data', (data) => {
+    console.error(`stderr: ${data}`);
+  });
+  
+  cmd.on('close', (code) => {
+    console.log(`child process exited with code ${code}`);
+    let dataBuffer =  Buffer.concat(bufferArray);
+    // console.log(dataBuffer.toString());
+    res(null, dataBuffer);
+  });
+};
+
+
+Stats.getAircraftStatus = (p1, res) => {
+
+  const { spawn } = require('child_process');
+  const cmd = spawn('python3', ['python/do_skedflexAcftStatus.py', p1]);
+
+  let bufferArray= []
+
+  // cmd.stdout.setEncoding('utf8'); sets encdoing defualt encoding is buffer
+  
+  cmd.stdout.on('data', (data) => {
+    // console.log(`stdout: ${data}`);
+    bufferArray.push(data)
+  });
+  
+  cmd.stderr.on('data', (data) => {
+    console.error(`stderr: ${data}`);
+  });
+  
+  cmd.on('close', (code) => {
+    console.log(`child process exited with code ${code}`);
+    let dataBuffer =  Buffer.concat(bufferArray);
+    // console.log(dataBuffer.toString());
+    res(null, dataBuffer);
+  });
+};
+
 module.exports = Stats;

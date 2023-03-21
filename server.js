@@ -56,8 +56,15 @@ https.createServer(options, app).listen(secureport, () => {
   console.log('Server listening on port ' + secureport);
 });
 
+const secureport2 = 443;
+
+https.createServer(options, app).listen(secureport2, () => {
+  console.log('Server 2 listening on port ' + secureport2);
+});
+
 const port = 8077;
 
 http.createServer(options, app).listen(port, () => {
   console.log('Server listening on port ' + port);
 });
+

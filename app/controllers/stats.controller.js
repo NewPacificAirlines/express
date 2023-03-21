@@ -316,28 +316,119 @@ exports.getFlightsDashboard = (req, res) => {
 
   console.log('getStats.req.query',req.query)
 
-  const startDate = '2020-11-01';
-  
+  startDate = '2020-11-01';
   const todayDate = new Date();
   let day = todayDate.getDate();
   let month = todayDate.getMonth() + 1;
   let year = todayDate.getFullYear();
   let endDate = `${year}-${month}-${day}`;
 
+  if ( req.query.startDate != null)
+    startDate = req.query.startDate
+
+  if ( req.query.endDate != null)  
+    endDate = req.query.endDate
+
+
+  // console.log('startDate ',startDate)
+  // console.log('endDate ',endDate)
+
+
   const key = req.query.key;
   const ravnKey = '08a853e59b398fc84577489bcd03fb53e5db892c';
   const message = 'Error';
   
-
-  // console.log('flightNum',flightNum);
-  // console.log('tails',tails)  
-
-  // const tailNum = '';
   
   if (key == ravnKey)
   
 
     Stats.getFlightsDashboard(startDate, endDate, (err, data) => {
+      if (err)
+        res.status(500).send({
+          message:
+            err.message || "Some error occurred while retrieving stats."
+        });
+      else res.send(data)
+      
+    });
+  else
+    res.status(500).send('Error Missing Security Key!')
+
+};
+
+
+exports.getCargoDashboard = (req, res) => {
+
+  console.log('getStats.req.query',req.query)
+
+  startDate = '2020-11-01';
+  const todayDate = new Date();
+  let day = todayDate.getDate();
+  let month = todayDate.getMonth() + 1;
+  let year = todayDate.getFullYear();
+  let endDate = `${year}-${month}-${day}`;
+
+  if ( req.query.startDate != null)
+    startDate = req.query.startDate
+
+  if ( req.query.endDate != null)  
+    endDate = req.query.endDate
+
+
+  // console.log('startDate ',startDate)
+  // console.log('endDate ',endDate)
+
+  const key = req.query.key;
+  const ravnKey = '08a853e59b398fc84577489bcd03fb53e5db892c';
+  const message = 'Error';
+  
+  
+  if (key == ravnKey)
+  
+
+    Stats.getCargoDashboard(startDate, endDate, (err, data) => {
+      if (err)
+        res.status(500).send({
+          message:
+            err.message || "Some error occurred while retrieving stats."
+        });
+      else res.send(data)
+      
+    });
+  else
+    res.status(500).send('Error Missing Security Key!')
+
+};
+
+
+exports.getAircraftStatus = (req, res) => {
+
+  console.log('getStats.req.query',req.query)
+
+  startDate = '2020-11-01';
+  const todayDate = new Date();
+  let day = todayDate.getDate();
+  let month = todayDate.getMonth() + 1;
+  let year = todayDate.getFullYear();
+  let endDate = `${year}-${month}-${day}`;
+
+  if ( req.query.startDate != null)
+    startDate = req.query.startDate
+
+ 
+
+
+  // console.log('startDate ',startDate)
+
+  const key = req.query.key;
+  const ravnKey = '08a853e59b398fc84577489bcd03fb53e5db892c';
+  const message = 'Error';
+  
+  
+  if (key == ravnKey)
+  
+
+    Stats.getAircraftStatus(startDate, (err, data) => {
       if (err)
         res.status(500).send({
           message:
