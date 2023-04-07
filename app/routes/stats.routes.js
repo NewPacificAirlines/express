@@ -50,6 +50,20 @@ module.exports = app => {
 router.get("/dashboard_getCargoDataNew", stats.getCargoDashboard);
 
 // Get post to run python script
+router.get("/getCargoData", stats.getCargoData);
+
+// Get post to run python script
+router.get("/getCargoDetailData", stats.getCargoDetailData);
+
+// Get post to run python script
+router.get("/getOtherCharges", stats.getOtherCharges);
+
+
+// Get post to run python script
+router.get("/getAirports", stats.getAirports);
+
+
+// Get post to run python script
 router.get("/dashboard_getAircraftStatus", stats.getAircraftStatus);
 
   app.use('/api/', router);

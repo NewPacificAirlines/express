@@ -1,4 +1,5 @@
 
+const { end } = require("../models/db.js");
 const Stats = require("../models/stats.model.js");
 
 // const Formpost = require("../models/stats.model.js");
@@ -123,6 +124,8 @@ exports.CreateUserPreference = (req, res) => {
   const UserEmail = req.query.UserEmail;
   const PreferenceType = req.query.PreferenceType;
   const PreferenceName = req.query.PreferenceName;
+  const FilterData = req.query.FilterData;
+
   const Data = req.query.Data;
 
 
@@ -131,7 +134,7 @@ exports.CreateUserPreference = (req, res) => {
 
   if (key == ravnKey)
 
-  Stats.createUserPreference(UserEmail,PreferenceType,PreferenceName,Data, (err, data) => {
+  Stats.createUserPreference(UserEmail,PreferenceType,PreferenceName,Data,FilterData, (err, data) => {
     if (err)
       res.status(500).send({
         message:
@@ -158,23 +161,20 @@ exports.UpdateUserPreference = (req, res) => {
   const ravnKey = '08a853e59b398fc84577489bcd03fb53e5db892c'
 
   const key = req.query.key;
-  const ID = req.query.ID;
-  const UserEmail = req.query.UserEmail;
-  const PreferenceType = req.query.PreferenceType;
-  const PreferenceName = req.query.PreferenceName;
+  const PreferenceID = req.query.ID;
   const Data = req.query.Data;
+  const FilterData = req.query.FilterData;
 
-
-  // console.log('CreateUserPreference req.query',req.query)
+  console.log('PreferenceID ',PreferenceID)
 
 
   if (key == ravnKey)
 
-  Stats.updateUserPreference(UserEmail,PreferenceType,PreferenceName,ID,Data, (err, data) => {
+  Stats.updateUserPreference(PreferenceID,Data,FilterData, (err, data) => {
     if (err)
       res.status(500).send({
         message:
-          err.message || "Some error occurred while creating preference."
+          err.message || "Some error occurred while updating preference."
       });
     else res.send(data);
   });
@@ -244,45 +244,7 @@ exports.FindUserPreference = (req, res) => {
 
 };
 
-// Update or create user preference
 
-exports.UpdateUserPreference = (req, res) => {
-  const ravnKey = '08a853e59b398fc84577489bcd03fb53e5db892c'
-  const key = req.query.key;
-  const UserEmail = req.query.UserEmail;
-  const PreferenceName = req.query.PreferenceName
-  const PreferenceType = req.query.PreferenceType
-  const ID = req.query.ID
-  const Data = req.query.Data
-
-  if (!req.body) {
-    res.status(400).send({
-      message: "Content can not be empty!"
-    });
-  }
-
-  // console.log('UpdateUserPreference.req.query',req.query)
-  // console.log('req.query.Body',Body)
-
-
-  if (key == ravnKey)
-
-    Stats.updateUserPreference(UserEmail, PreferenceName, PreferenceType, ID, Data, (err, data) => {
-      if (err)
-        res.status(500).send({
-          message:
-            err.message || "Some error occurred while retrieving user preferences."
-        });
-      else res.send(data);
-  });
-
-  else
-    res.status(500).send({
-      message:
-        err.message || "No security key!"
-    }); 
-
-};
 // Get User Preference by UserEmail PreferenceName and PreferenceType
 exports.DeleteUserPreference = (req, res) => {
   const ravnKey = '08a853e59b398fc84577489bcd03fb53e5db892c'
@@ -441,3 +403,137 @@ exports.getAircraftStatus = (req, res) => {
     res.status(500).send('Error Missing Security Key!')
 
 };
+
+exports.getCargoData = (req, res) => {
+
+  console.log('getCargoData.req.query',req.query)
+
+  const startDate = req.query.startDate;
+  const endDate = req.query.endDate;
+  const origin = req.query.origin;
+  const dest = req.query.dest;
+
+  const key = req.query.key;
+  const ravnKey = '08a853e59b398fc84577489bcd03fb53e5db892c';
+  const message = 'Error';
+  
+
+  // console.log('controller startDate ',startDate)
+  // console.log('controller endDate ',endDate)
+  
+  if (key == ravnKey)
+  
+
+    Stats.getCargoData(startDate, endDate, origin, dest, (err, data) => {
+      if (err)
+        res.status(500).send({
+          message:
+            err.message || "Some error occurred while retrieving cargo."
+        });
+      else res.send(data)
+      // console.log(data)
+      
+    });
+  else
+    res.status(500).send('Error Missing Security Key!')
+
+};
+
+
+exports.getCargoDetailData = (req, res) => {
+
+  console.log('getCargoDetailData.req.query',req.query)
+
+  const DetailID = req.query.ID;
+
+
+  const key = req.query.key;
+  const ravnKey = '08a853e59b398fc84577489bcd03fb53e5db892c';
+  const message = 'Error';
+  
+
+  // console.log('controller startDate ',startDate)
+  // console.log('controller endDate ',endDate)
+  
+  if (key == ravnKey)
+  
+
+    Stats.getCargoDetailData(DetailID, (err, data) => {
+      if (err)
+        res.status(500).send({
+          message:
+            err.message || "Some error occurred while retrieving cargo detail."
+        });
+      else res.send(data)
+      // console.log(data)
+      
+    });
+  else
+    res.status(500).send('Error Missing Security Key!')
+
+};
+
+
+
+
+exports.getOtherCharges = (req, res) => {
+
+  console.log('getOtherCharges.req.query',req.query)
+
+  const DetailID = req.query.ID;
+
+
+  const key = req.query.key;
+  const ravnKey = '08a853e59b398fc84577489bcd03fb53e5db892c';
+  const message = 'Error';
+  
+
+  // console.log('controller startDate ',startDate)
+  // console.log('controller endDate ',endDate)
+  
+  if (key == ravnKey)
+  
+
+    Stats.getOtherCharges(DetailID, (err, data) => {
+      if (err)
+        res.status(500).send({
+          message:
+            err.message || "Some error occurred while retrieving other charges detail."
+        });
+      else res.send(data)
+      // console.log(data)
+      
+    });
+  else
+    res.status(500).send('Error Missing Security Key!')
+
+};
+
+
+// Retrieve all active Aiports records from the database 
+exports.getAirports = (req, res) => {
+  const active = req.query.active;
+  const ravnKey = '08a853e59b398fc84577489bcd03fb53e5db892c'
+
+  const key = req.query.key;
+
+  // console.log('getAirports.req.query',req.query)
+
+  if (key == ravnKey)
+
+  Stats.getAirports(active, (err, data) => {
+    if (err)
+      res.status(500).send({
+        message:
+          err.message || "Some error occurred while retrieving airports."
+      });
+    else res.send(data);
+  });
+
+  else
+    res.status(500).send({
+      message:
+        err.message || "No security key!"
+    }); 
+};
+

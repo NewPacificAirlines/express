@@ -159,7 +159,7 @@ def run_query(start_date, end_date):
             cursor.close()
             connection.close()
 
-    index = 0
+    
     
    
 
@@ -196,6 +196,7 @@ def run_query(start_date, end_date):
     # print(len(acctInfo))
     # print(len(remarks))
 
+    index = 0
     
     while index < len(station):
         jsonLine='{"Station":"'+station[index]+'","Date Paid":"'+datePaid[index]+'","Date Rcvd":"'+dateRcvd[index]+'","Origin":"'+origin[index]+'","Destination":"'+destination[index]+'","Type":"'+freightType[index]+'","Payment":"'+payment[index]+\
