@@ -100,7 +100,6 @@ Stats.getManifests = (Manifestid, startDate, endDate, res) => {
 };
 
 
-
 Stats.getAircraft = (active, result) => {
   let query = "SELECT aircraft, short, type FROM Aircraft"
   // console.log('sql',query);
@@ -139,6 +138,7 @@ Stats.getAllUserPreferences = (UserEmail, PreferenceType, result) => {
     result(null, res);
   });
 };
+
 
 Stats.getUserPreferenceByName = (UserEmail, PreferenceName, PreferenceType, result) => {
   let query = "SELECT ID, PreferenceData, FilterData FROM UserPreferences "
@@ -229,10 +229,10 @@ Stats.deleteUserPreference = (ID, result) => {
 
 
 
-Stats.getFlightsDashboard = (p1, p2, res) => {
+Stats.getFlightsDashboard = (p1, p2, p3, res) => {
 
   const { spawn } = require('child_process');
-  const cmd = spawn('python3', ['python/do_skedflexDashboard.py', p1, p2]);
+  const cmd = spawn('python3', ['python/do_skedflexDashboard.py', p1, p2, p3]);
 
   let bufferArray= []
 
@@ -254,7 +254,6 @@ Stats.getFlightsDashboard = (p1, p2, res) => {
     res(null, dataBuffer);
   });
 };
-
 
 
 Stats.getCargoDashboard = (p1, p2, res) => {
@@ -284,10 +283,10 @@ Stats.getCargoDashboard = (p1, p2, res) => {
 };
 
 
-Stats.getAircraftStatus = (p1, res) => {
+Stats.getAircraftStatus = (p1,p2, res) => {
 
   const { spawn } = require('child_process');
-  const cmd = spawn('python3', ['python/do_skedflexAcftStatus.py', p1]);
+  const cmd = spawn('python3', ['python/do_skedflexAcftStatus.py', p1, p2]);
 
   let bufferArray= []
 
@@ -311,12 +310,10 @@ Stats.getAircraftStatus = (p1, res) => {
 };
 
 
-
-
 Stats.getCargoData = (startDate,endDate,origin,dest, res) => {
 
-  // console.log('getCargoData startDate ',startDate)
-  // console.log('getCargoData endDate ',endDate)
+  console.log('getCargoData startDate ',startDate)
+  console.log('getCargoData endDate ',endDate)
 
   const { spawn } = require('child_process');
   const cmd = spawn('python3', ['python/do_cargoDataQuery.py', startDate, endDate, origin, dest]);
@@ -372,6 +369,38 @@ Stats.getCargoDetailData = (DetailID, res) => {
   });
 };
 
+
+Stats.getWhizTicketData = (DetailID, res) => {
+
+  console.log('getWhizTicketData startDate ',startDate)
+  console.log('getWhizTicketData endDate ',endDate)
+
+  
+ const { spawn } = require('child_process');
+ const cmd = spawn('python3', ['python/do_cargoWhizQuery.py', startDate, endDate]);
+
+ let bufferArray= []
+
+ // cmd.stdout.setEncoding('utf8'); sets encdoing defualt encoding is buffer
+ 
+ cmd.stdout.on('data', (data) => {
+   // console.log(`stdout: ${data}`);
+   bufferArray.push(data)
+ });
+ 
+ cmd.stderr.on('data', (data) => {
+   console.error(`stderr: ${data}`);
+ });
+ 
+ cmd.on('close', (code) => {
+   console.log(`child process exited with code ${code}`);
+   let dataBuffer =  Buffer.concat(bufferArray);
+   // console.log(dataBuffer.toString());
+   res(null, dataBuffer);
+ });
+};
+
+
 Stats.getOtherCharges = (DetailID, res) => {
 
   // console.log('getOtherCharges DetailID ',DetailID)
@@ -422,4 +451,78 @@ Stats.getAirports = (active, result) => {
     result(null, res);
   });
 };
+
+
+Stats.getTimezones = (result) => {
+  let query = "SELECT * FROM Timezones ORDER BY timezone DESC;"
+  // console.log('sql',query);
+  
+  sql.query(query, (err, res) => {
+    if (err) {
+      console.log("error: ", err);
+      result(null, err);
+      return;
+    }
+
+    // console.log("timezones: ", res);
+    result(null, res);
+  });
+};
+
+Stats.getPrinters = (location, result) => {
+  
+  let query = "SELECT name, ip_address, location, type, description, port FROM Printers "
+
+  console.log('location',location)
+  
+  if (location !== undefined ) {
+    query += ` WHERE location = '${location}'`;
+  }
+
+  query += ` ORDER BY name`;
+
+  console.log('sql',query);
+
+  sql.query(query, (err, res) => {
+    if (err) {
+      console.log("error: ", err);
+      result(null, err);
+      return;
+    }
+
+    console.log("Printers: ", res);
+    result(null, res);
+  });
+};
+
+
+Stats.printBagTag = (printer,legs,company,tagNumber,recordLoc,flightDate,lastName,firstName,fullDest,fullState,flight1,dest1,flight2,dest2,dest2Dep,flight3,dest3,dest3Dep,flight4,dest4,dest4Dep,selectee,returnData,rush,res) => {
+    
+  // console.log('Printer IP',printer)
+ 
+
+  const { spawn } = require('child_process');
+  const cmd = spawn('python3', ['python/create_BTPFile.py',printer,legs,company,tagNumber,recordLoc,flightDate,lastName,firstName,fullDest,fullState,flight1,dest1,flight2,dest2,dest2Dep,flight3,dest3,dest3Dep,flight4,dest4,dest4Dep,selectee,returnData,rush]);
+
+  let bufferArray= []
+
+  // cmd.stdout.setEncoding('utf8'); sets encdoing defualt encoding is buffer
+  
+  cmd.stdout.on('data', (data) => {
+    // console.log(`stdout: ${data}`);
+    bufferArray.push(data)
+  });
+  
+  cmd.stderr.on('data', (data) => {
+    console.error(`stderr: ${data}`);
+  });
+  
+  cmd.on('close', (code) => {
+    console.log(`child process exited with code ${code}`);
+    let dataBuffer =  Buffer.concat(bufferArray);
+    // console.log(dataBuffer.toString());
+    res(null, dataBuffer);
+  });
+};
+
 module.exports = Stats;

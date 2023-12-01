@@ -4,11 +4,12 @@ const cors = require("cors");
 
 const app = express();
 
-const bodyParser = require("body-parser");
+// const bodyParser = require("body-parser");
 const {spawn} = require("child_process");
 const fs = require("fs");
 const https = require('https');
 const http = require('http');
+
 
 const options = {
   key: fs.readFileSync("app/config/star_ravnalaska_net.key"),

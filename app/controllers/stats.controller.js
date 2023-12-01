@@ -291,6 +291,11 @@ exports.getFlightsDashboard = (req, res) => {
   if ( req.query.endDate != null)  
     endDate = req.query.endDate
 
+  if (req.query.utc != null)
+    utc = req.query.utc
+  else
+    utc = 'no'  
+
 
   // console.log('startDate ',startDate)
   // console.log('endDate ',endDate)
@@ -304,7 +309,7 @@ exports.getFlightsDashboard = (req, res) => {
   if (key == ravnKey)
   
 
-    Stats.getFlightsDashboard(startDate, endDate, (err, data) => {
+    Stats.getFlightsDashboard(startDate, endDate, utc, (err, data) => {
       if (err)
         res.status(500).send({
           message:
@@ -367,20 +372,35 @@ exports.getAircraftStatus = (req, res) => {
 
   console.log('getStats.req.query',req.query)
 
-  startDate = '2020-11-01';
-  const todayDate = new Date();
-  let day = todayDate.getDate();
-  let month = todayDate.getMonth() + 1;
-  let year = todayDate.getFullYear();
-  let endDate = `${year}-${month}-${day}`;
+ 
+  const today = new Date()
+  
+
+  let day = today.getDate();
+  let month = String(today.getMonth() + 1).padStart(2,"0");
+  let year = today.getFullYear();
+  let defaultStart = `${year}-${month}-${day}`;
 
   if ( req.query.startDate != null)
     startDate = req.query.startDate
+  else;
+    startDate = defaultStart
 
- 
+  const tomorrow = new Date(today)
+  tomorrow.setDate(tomorrow.getDate() + 1)
+  day = tomorrow.getDate();
+  month = String(tomorrow.getMonth() + 1).padStart(2,"0");
+  year = tomorrow.getFullYear();
+  let defaultEnd = `${year}-${month}-${day}`;
+
+  if ( req.query.endDate != null)
+    endDate = req.query.startDate
+  else;
+    endDate = defaultEnd
 
 
-  // console.log('startDate ',startDate)
+  console.log('startDate ',startDate)
+  console.log('endDate ',endDate)
 
   const key = req.query.key;
   const ravnKey = '08a853e59b398fc84577489bcd03fb53e5db892c';
@@ -390,7 +410,7 @@ exports.getAircraftStatus = (req, res) => {
   if (key == ravnKey)
   
 
-    Stats.getAircraftStatus(startDate, (err, data) => {
+    Stats.getAircraftStatus(startDate, endDate, (err, data) => {
       if (err)
         res.status(500).send({
           message:
@@ -408,8 +428,8 @@ exports.getCargoData = (req, res) => {
 
   console.log('getCargoData.req.query',req.query)
 
-  const startDate = req.query.startDate;
-  const endDate = req.query.endDate;
+  const startDate = req.query.startdate;
+  const endDate = req.query.enddate;
   const origin = req.query.origin;
   const dest = req.query.dest;
 
@@ -417,7 +437,7 @@ exports.getCargoData = (req, res) => {
   const ravnKey = '08a853e59b398fc84577489bcd03fb53e5db892c';
   const message = 'Error';
   
-
+  // console.log('controller key ',ravnKey)
   // console.log('controller startDate ',startDate)
   // console.log('controller endDate ',endDate)
   
@@ -473,7 +493,38 @@ exports.getCargoDetailData = (req, res) => {
 
 };
 
+exports.getWhizTicketData = (req, res) => {
 
+  console.log('getWhizTicketData.req.query',req.query)
+
+  const startDate = req.query.startdate;
+  const endDate = req.query.enddate;
+
+
+  const key = req.query.key;
+  const ravnKey = '08a853e59b398fc84577489bcd03fb53e5db892c';
+  const message = 'Error';
+  
+
+  console.log('controller DetailID ',DetailID)
+  
+  if (key == ravnKey)
+  
+
+    Stats.getWhizTicketData(startDate, endDate, (err, data) => {
+      if (err)
+        res.status(500).send({
+          message:
+            err.message || "Some error occurred while retrieving whiz detail."
+        });
+      else res.send(data)
+      // console.log(data)
+      
+    });
+  else
+    res.status(500).send('Error Missing Security Key!')
+
+};
 
 
 exports.getOtherCharges = (req, res) => {
@@ -537,3 +588,155 @@ exports.getAirports = (req, res) => {
     }); 
 };
 
+
+// Retrieve all Timezone records from the database 
+exports.getTimezones = (req, res) => {
+
+  const ravnKey = '08a853e59b398fc84577489bcd03fb53e5db892c'
+
+  const key = req.query.key;
+
+  console.log('getTimezones.req.query',req.query)
+
+  if (key == ravnKey)
+
+  Stats.getTimezones((err, data) => {
+    if (err)
+      res.status(500).send({
+        message:
+          err.message || "Some error occurred while retrieving timezones."
+      });
+    else res.send(data);
+  });
+
+  else
+    res.status(500).send({
+      message:
+        err.message || "No security key!"
+    }); 
+};
+
+
+// Retrieve all printers from database by location
+exports.getPrinters = (req, res) => {
+
+  const ravnKey = '08a853e59b398fc84577489bcd03fb53e5db892c'
+  const location = req.query.location;
+
+
+  const key = req.query.key;
+
+  console.log('getPrinters.req.query',req.query)
+
+  if (key == ravnKey)
+
+  Stats.getPrinters(location, (err, data) => {
+    if (err)
+      res.status(500).send({
+        message:
+          err.message || "Some error occurred while retrieving printers."
+      });
+    else res.send(data);
+  });
+
+  else
+    res.status(500).send({
+      message:
+        err.message || "No security key!"
+    }); 
+};
+
+// Print BagTag
+exports.printBagTag = (req, res) => {
+  const ravnKey = '08a853e59b398fc84577489bcd03fb53e5db892c'
+
+  const key = req.query.key;
+  
+  const printer = req.query.printer;
+  
+  const legs = req.query.legs;
+
+  const company = req.query.company
+  const tagNumber = req.query.tagNumber;
+  const tagNumberLong = req.query.tagNumberLong
+
+  const recordLoc = req.query.recordLoc;
+  const flightDate = req.query.flightDate;
+
+  const lastName = req.query.lastName;
+  const firstName = req.query.firstName;
+  const fullDest = req.query.fullDest;
+  const fullState = req.query.fullState;
+
+
+  const flight1 = req.query.flight1;
+  const dest1 = req.query.dest1;
+  
+  const flight2 = req.query.flight2;
+  const dest2 = req.query.dest2;
+  const dest2Dep = req.query.dest2Dep;
+
+  const flight3 = req.query.flight3;
+  const dest3 = req.query.dest3;
+  const dest3Dep = req.query.dest3Dep;
+
+  const flight4 = req.query.flight4;
+  const dest4 = req.query.dest4;
+  const dest4Dep = req.query.dest4Dep;
+
+  const returnData = req.query.returnData;
+
+  const selectee = req.query.selectee;
+  const rush  = req.query.rush;
+
+
+  // console.log('printBagTag req.query',req.query)
+
+
+  if (key == ravnKey){
+
+    valid = false
+
+    switch(Number(legs)){
+
+      case 1:
+
+        if (company !== '' && tagNumber !== '' && recordLoc !== '' && flightDate !== '' && lastName !== '' && firstName !== '' && fullDest !== '' && fullState !== '' && flight1 !== '' && dest1 !== '')
+          valid = true
+        
+      case 2:
+        if (company !== '' && tagNumber !== '' && recordLoc !== '' && flightDate !== '' && lastName !== '' && firstName !== '' && fullDest !== '' && fullState !== '' && flight1 !== '' && dest1 !== '' && flight2 !== '' && dest2 !== '' && dest2Dep !== '')
+          valid = true
+      
+      case 3: 
+        if (company !== '' && tagNumber !== '' && recordLoc !== '' && flightDate !== '' && lastName !== '' && firstName !== '' && fullDest !== '' && fullState !== '' && flight1 !== '' && dest1 !== '' && flight2 !== '' && dest2 !== '' && dest2Dep !== '' && flight3 !== '' && dest3 !== '' && dest3Dep !== '')
+        valid = true
+
+      case 4: 
+        if (company !== '' && tagNumber !== '' && recordLoc !== '' && flightDate !== '' && lastName !== '' && firstName !== '' && fullDest !== '' && fullState !== '' && flight1 !== '' && dest1 !== '' && flight2 !== '' && dest2 !== '' && dest2Dep !== '' && flight3 !== '' && dest3 !== '' && dest3Dep !== '' && flight4 !== '' && dest4 !== '' && dest4Dep !== '')
+        valid = true
+    };
+    
+    if(valid == true){
+
+      Stats.printBagTag(printer,legs,company,tagNumber,recordLoc,flightDate,lastName,firstName,fullDest,fullState,flight1,dest1,flight2,dest2,dest2Dep,flight3,dest3,dest3Dep,flight4,dest4,dest4Dep,selectee,returnData,rush, (err, data) => {
+        if (err)
+          res.status(500).send({
+            message:
+              err.message || "Some error occurred while creating print job."
+          });
+        else res.send(data);
+      });
+
+    } else {
+
+      res.status(500).send('Error Missing Required Parameters!');
+
+    }  
+
+  } else {
+  
+    res.status(500).send('Error Missing Security Key!');
+
+  }
+};
