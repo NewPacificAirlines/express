@@ -15,25 +15,37 @@ from mysql.connector import Error
 from datetime import date, timedelta, datetime
 import dateutil.parser
 import re
+from pytz import timezone
 
 
 
-
-def run_query(start_date, end_date):
+def run_query(start_date, end_date,utc):
+    
+    
     
     
     Dates = []
+    
     SchedDeps = []
     SchedArvs = []
+    OutTimes = []
+    OffTimes = []
+    OnTimes = []
+    InTimes = []
+
+    SchedDepTimes = []
+    SchedArvTimes = []
+    OutTimeTimes = []
+    OffTimeTimes = []
+    OnTimeTimes = []
+    InTimeTimes = []
+
+    
     FlightNums = []
     Statuses = []
    
     Tails = []
     Seats = []
-    OutTimes = []
-    OffTimes = []
-    OnTimes = []
-    InTimes = []
     DepartLocs = []
     ArriveLocs = []
     DepartDelayCodes = []
@@ -58,7 +70,7 @@ def run_query(start_date, end_date):
 
     connection = 0
    
-
+    format_string = '%Y-%m-%dT%H:%M:%S%z'
 
     try:
         connection = mysql.connector.connect(host='127.0.0.1',
@@ -105,36 +117,98 @@ def run_query(start_date, end_date):
                 
             except:
                 Seats.append(37)
+
+            
+            if utc == 'yes':
+            
+            
+                try:
+                    SchedDeps.append(str(row['schedDepTime']))
+                except:
+                    SchedDeps.append('')    
+                    
+                try:
+                    SchedArvs.append(str(row['schedArvTime']))
+                except:
+                    
+                    SchedArvs.append('')  
+                try:
+                    OutTimes.append(str(row['outTime']))
+                except:
+                    OutTimes.append('00:00:00')
+                    
+                try:
+                    OffTimes.append(str(row['offTime']))
+                except:
+                    OffTimes.append('00:00:00')
+                    
+                try:
+                    OnTimes.append(str(row['onTime']))
+                except:
+                    OnTimes.append('00:00:00')
+                    
+                try:
+                    InTimes.append(str(row['inTime']))
+                except:
+                    InTimes.append('00:00:00')
                 
-            try:
-                SchedDeps.append(datetime.strftime(dateutil.parser.parse(row['schedDepTime']),'%H:%M:%S'))
-            except:
-                SchedDeps.append('')    
+            else:
                 
-            try:
-                SchedArvs.append(datetime.strftime(dateutil.parser.parse(row['schedArvTime']),'%H:%M:%S'))
-            except:
                 
-                SchedArvs.append('')  
-            try:
-                OutTimes.append(datetime.strftime(dateutil.parser.parse(row['outTime']),'%H:%M:%S'))
-            except:
-                OutTimes.append('00:00:00')
-                
-            try:
-                OffTimes.append(datetime.strftime(dateutil.parser.parse(row['offTime']),'%H:%M:%S'))
-            except:
-                OffTimes.append('00:00:00')
-                
-            try:
-                OnTimes.append(datetime.strftime(dateutil.parser.parse(row['onTime']),'%H:%M:%S'))
-            except:
-                OnTimes.append('00:00:00')
-                
-            try:
-                InTimes.append(datetime.strftime(dateutil.parser.parse(row['inTime']),'%H:%M:%S'))
-            except:
-                InTimes.append('00:00:00')
+                try:
+                    origTime = datetime.strptime(row['schedDepTime'],format_string)
+                    convertedTime = origTime.astimezone(timezone('America/Anchorage'))
+                    newTime = str(convertedTime)
+                    truncatedTime = newTime[11:19]
+                    SchedDeps.append(truncatedTime)
+                except:
+                    SchedDeps.append('')    
+                    
+                try:
+                    origTime = datetime.strptime(row['schedArvTime'],format_string)
+                    convertedTime = origTime.astimezone(timezone('America/Anchorage'))
+                    newTime = str(convertedTime)
+                    truncatedTime = newTime[11:19]
+                    SchedArvs.append(truncatedTime)
+                except:
+                    SchedArvs.append('')  
+                    
+                try:
+                    origTime = datetime.strptime(row['outTime'],format_string)
+                    convertedTime = origTime.astimezone(timezone('America/Anchorage'))
+                    newTime = str(convertedTime)
+                    truncatedTime = newTime[11:19]
+                    OutTimes.append(truncatedTime)
+                except:
+                    OutTimes.append('00:00:00')
+                    
+                try:
+                    origTime = datetime.strptime(row['offTime'],format_string)
+                    convertedTime = origTime.astimezone(timezone('America/Anchorage'))
+                    newTime = str(convertedTime)
+                    truncatedTime = newTime[11:19]
+                    OffTimes.append(truncatedTime)
+                except:
+                    OffTimes.append('00:00:00')
+                    
+                try:
+                    origTime = datetime.strptime(row['onTime'],format_string)
+                    convertedTime = origTime.astimezone(timezone('America/Anchorage'))
+                    newTime = str(convertedTime)
+                    truncatedTime = newTime[11:19]
+                    OnTimes.append(truncatedTime)
+                except:
+                    OnTimes.append('00:00:00')
+                    
+                try:
+                    origTime = datetime.strptime(row['inTime'],format_string)
+                    convertedTime = origTime.astimezone(timezone('America/Anchorage'))
+                    newTime = str(convertedTime)
+                    truncatedTime = newTime[11:19]
+                    InTimes.append(truncatedTime)
+                except:
+                    InTimes.append('00:00:00')
+            
                 
             try:
                 departLocDict = ast.literal_eval(row['departLoc'])
@@ -342,11 +416,19 @@ def run_query(start_date, end_date):
     # print(len(Bags))
     # print(len(rpms))
     # print(len(asms))
-
     
+    # print(SchedDepTimes)
+    # print(SchedArvTimes)
+    # print(OutTimeTimes)
+    # print(OffTimeTimes)
+    # print(OnTimeTimes)
+    # print(InTimeTimes)
+
+
     jsonList=[]   
     index = 0
     while index < len(FlightNums):
+            
         jsonLine='{"FltDate":"'+Dates[index]+'","SkedDep":"'+SchedDeps[index]+'","FltNumber":"'+ FlightNums[index]+\
             '","Acft":"'+Tails[index]+'","Seats":"'+str(Seats[index])+'","Out":"'+OutTimes[index]+'","Off":"'+OffTimes[index]+\
             '","On":"'+OnTimes[index]+'","In":"'+InTimes[index]+'","SkedArr":"'+SchedArvs[index]+'","Origin":"'+DepartLocs[index]+\
@@ -354,7 +436,7 @@ def run_query(start_date, end_date):
             '","Captain":"'+Crews[index]+'","SkedFlexType":"'+Types[index]+'","SkedFlexOpsType":"'+OpsTypes[index]+'","Canceled":"'+Canceleds[index]+\
             '","CanceledReason":"'+IrregularCodes[index]+'","DateTimeStamp":"'+DateTimeStamp[index]+'","Pax":"'+Pax[index]+\
             '","Cargo":"'+Cargo[index]+'","Mail":"'+Mail[index]+'","MailNon":"'+MailNon[index]+'","Bags":"'+Bags[index]+'","RPM":"'+rpms[index]+'","ASM":"'+asms[index]+'"}'
-        
+            
         jsonList.append(jsonLine)
         
         index += 1
@@ -376,6 +458,11 @@ if __name__ == '__main__':
     except:
         end_date = date.today()
         start_date = end_date-timedelta(days=7)
+        
+    try:
+        utc = sys.argv[3]
+    except:
+        utc = 'no'    
          
     
-    run_query(start_date,end_date) 
+    run_query(start_date,end_date,utc) 

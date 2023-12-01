@@ -45,10 +45,14 @@ def run_query(id):
         for row in records:
             # print(row)
             try:
-                otherCharges.append(str(row['OtherCharges']))
+                OtherCharges = str(row(['Othercharges']))
+                if (OtherCharges == ''):
+                    otherCharges.append('{"Amount": "0", "Description": "", "Taxable": "", "ChargeDue": ""}')
+                else:
+                    otherCharges.append(str(row['OtherCharges']))
 
             except:
-                otherCharges.append('')
+                otherCharges.append('{"Amount": "0", "Description": "", "Taxable": "", "ChargeDue": ""}')
    
         
        

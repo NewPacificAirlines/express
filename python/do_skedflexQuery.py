@@ -18,7 +18,6 @@ import re
 
 
 
-
 def run_query(start_date, end_date, flight_num,tails):
     
 
@@ -29,6 +28,7 @@ def run_query(start_date, end_date, flight_num,tails):
     
     IDs = []
     Dates = []
+    UTCDates = []
     SchedDeps = []
     SchedArvs = []
     FlightNums = []
@@ -44,6 +44,9 @@ def run_query(start_date, end_date, flight_num,tails):
     ArriveLocs = []
     DepartDelayCodes = []
     DepartDelayTimes =[]
+    
+    Notes = []
+    
     Captain = []
     
     Types = []
@@ -85,7 +88,7 @@ def run_query(start_date, end_date, flight_num,tails):
         cursor = connection.cursor(dictionary=True)
         
        
-        sql = """SELECT id, flightNum, status, date, tail, eqp, schedDepTime, schedArvTime, outTime, offTime, onTime, inTime, departLoc, arriveLoc, departDelays, crew, type, opsTypes, irregularCode, seats, pax, paxnon, cargo, rush, comat, mail, mailnon, bags, bagcount, cargobagcount, rpm, asm, fob, burn FROM SkedFlexData
+        sql = """SELECT id, flightNum, status, date, tail, eqp, schedDepTime, schedArvTime, outTime, offTime, onTime, inTime, departLoc, arriveLoc, departDelays, notes, crew, type, opsTypes, irregularCode, seats, pax, paxnon, cargo, rush, comat, mail, mailnon, bags, bagcount, cargobagcount, rpm, asm, fob, burn FROM SkedFlexData
                 WHERE (date BETWEEN %s AND %s) AND type <> 'offline-dh' AND status <> 'deleted'"""
         
         params = (start_date, end_date)
@@ -111,7 +114,7 @@ def run_query(start_date, end_date, flight_num,tails):
             tails_sql += ") " 
             sql += tails_sql
             
-        # sql += " ORDER BY date, flightNum"
+        sql += " ORDER BY date"
         
         
         # print(sql)
@@ -134,15 +137,33 @@ def run_query(start_date, end_date, flight_num,tails):
                 Canceleds.append('TRUE')
             else:
                 Canceleds.append('FALSE')
-                        
+            
+            
+            try:
+                UTCDate = datetime.strftime(dateutil.parser.parse(row['outTime']),'%-m/%-d/%y')
+                UTCDates.append(UTCDate)
+                
+                # month.append(UTCDate.month)
+                # day.append(UTCDate.day)
+                # year.append(UTCDate.year)
+       
+                
+            except:
+                UTCDates.append(row['date'].strftime('%-m/%-d/%y'))
+               
+                
             # Dates.append(row['date'].strftime('%x'))
             rowDate = row['date']
+            
+            
             Dates.append(row['date'].strftime('%-m/%-d/%y'))
+            
+           
             
             month.append(rowDate.month)
             day.append(rowDate.day)
             year.append(rowDate.year)
-            
+       
 
             try:
                 tailDict = ast.literal_eval(row['tail'])
@@ -363,6 +384,16 @@ def run_query(start_date, end_date, flight_num,tails):
             
             except:
                 IrregularCodes.append('')
+                
+            try:
+                noteStr = row['notes']
+                
+                
+                noteStr = re.sub(r'\'', '', noteStr)
+                 
+                Notes.append(noteStr)
+            except:
+                Notes.append('bad')    
             
             now = datetime.now()    
             date_time = now.strftime("%m/%d/%Y, %H:%M:%S")
@@ -473,7 +504,7 @@ def run_query(start_date, end_date, flight_num,tails):
             cursor.close()
             connection.close()
     
-    
+    # print(Notes)
     # print(Canceleds)
     # print(Statuses)
     # print(Dates)
@@ -513,6 +544,8 @@ def run_query(start_date, end_date, flight_num,tails):
     # print(strDay)
     # print(strYear)
     
+    # print(UTCDates)
+    
     jsonList=[]   
     index = 0
     while index < len(FlightNums):
@@ -520,12 +553,12 @@ def run_query(start_date, end_date, flight_num,tails):
             '","Acft":"'+Tails[index]+'","Seats":"'+str(Seats[index])+'","Out":"'+OutTimes[index]+'","Off":"'+OffTimes[index]+\
             '","On":"'+OnTimes[index]+'","In":"'+InTimes[index]+'","SkedArr":"'+SchedArvs[index]+'","Origin":"'+DepartLocs[index]+\
             '","Dest":"'+ArriveLocs[index]+'","DelayTime":"'+DepartDelayTimes[index]+'","DelayData":"'+DepartDelayCodes[index]+\
-            '","Captain":"'+Captain[index]+'","Copilot":"'+Copilot[index]+'","Flight Attendant":"'+FlightAttendant[index]+\
+            '","Captain":"'+Captain[index]+'","Copilot":"'+Copilot[index]+'","Flight Attendant":"'+FlightAttendant[index]+'","Notes":"'+Notes[index]+\
             '","SkedFlexType":"'+Types[index]+'","SkedFlexOpsType":"'+OpsTypes[index]+'","Canceled":"'+Canceleds[index]+\
             '","CanceledReason":"'+IrregularCodes[index]+'","DateTimeStamp":"'+DateTimeStamp[index]+'","Pax":"'+Pax[index]+'","PaxNon":"'+PaxNon[index]+\
             '","Rush":"'+Rush[index]+'","Comat":"'+Comat[index]+'","CargoBagCount":"'+CargoBagCount[index]+'","FOB":"'+fob[index]+'","Burn":"'+burn[index]+\
             '","Cargo":"'+Cargo[index]+'","Mail":"'+Mail[index]+'","MailNon":"'+MailNon[index]+'","Bags":"'+Bags[index]+'","RPM":"'+rpms[index]+'","ASM":"'+asms[index]+\
-            '","Month":"'+strMonth[index]+'","Day":"'+strDay[index]+'","Year":"'+strYear[index]+'"}'
+            '","Month":"'+strMonth[index]+'","Day":"'+strDay[index]+'","Year":"'+strYear[index]+'","UTCDate":"'+UTCDates[index]+'"}'
         
         jsonList.append(jsonLine)
         

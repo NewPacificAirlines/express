@@ -662,7 +662,9 @@ def run_query(start_date, end_date, origin, dest):
                 Total_Weight.append('')
 
             try:
-                UniqueVoucher.append(row['UniqueVoucher'])
+                stringData = row['UniqueVoucher']
+                stringData = stringData.decode('string_escape')
+                UniqueVoucher.append(stringData)
             except:
                 UniqueVoucher.append('')
 
